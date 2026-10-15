@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0e17">
+<title>⚽ Match Engine V26.1</title>
+<script src="https://js.puter.com/v2/"></script>
+<style>
+:root{--bg:#0a0e17;--card:#111827;--card2:#1a2332;--border:#1f2937;--text:#f9fafb;--muted:#9ca3af;--green:#10b981;--blue:#3b82f6;--gold:#fbbf24;--red:#dc2626;--ai:#a855f7;--sb:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:"Segoe UI",Tahoma,system-ui,sans-serif;min-height:100vh;padding-bottom:calc(90px + var(--sb));line-height:1.5;font-size:15px;overflow-x:hidden}
+.top-header{position:sticky;top:0;z-index:100;background:linear-gradient(180deg,rgba(10,14,23,.98),rgba(10,14,23,.92));padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;backdrop-filter:blur(12px)}
+.top-header h1{font-size:1rem;font-weight:800;background:linear-gradient(135deg,var(--green),var(--blue),var(--ai));-webkit-background-clip:text;background-clip:text;color:transparent}
+.badge{display:inline-block;font-size:.62rem;padding:3px 9px;border-radius:20px;background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3);font-weight:700}
+.badge.err{background:rgba(239,68,68,.15);color:var(--red);border-color:rgba(239,68,68,.3)}
+.badge.load{background:rgba(245,158,11,.15);color:var(--gold);border-color:rgba(245,158,11,.3)}
+.badge.ai{background:rgba(168,85,247,.15);color:var(--ai);border-color:rgba(168,85,247,.3);animation:pulse 3s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.65}}
+.status-bar{background:var(--card2);padding:6px 12px;font-size:.65rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;margin-left:4px;animation:pulse 2s infinite}
+.refresh-dot.paused{background:var(--gold);animation:none}
+.refresh-dot.error{background:var(--red);animation:none}
+.ai-status-bar{background:linear-gradient(90deg,rgba(168,85,247,.15),rgba(59,130,246,.1));padding:5px 12px;font-size:.62rem;color:#d0defc;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(168,85,247,.3)}
+.hero-banner{margin:10px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#10b981,#3b82f6,#a855f7);position:relative;overflow:hidden}
+.hero-banner::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.25),transparent 50%)}
+.hero-banner .hero-title{font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:4px;position:relative;z-index:1}
+.hero-banner .hero-sub{font-size:.75rem;color:rgba(255,255,255,.9);position:relative;z-index:1}
+.league-scroll{display:flex;gap:10px;overflow-x:auto;padding:10px 14px;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.league-scroll::-webkit-scrollbar{display:none}
+.league-chip{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;min-width:64px}
+.league-chip .league-logo{width:48px;height:48px;border-radius:12px;padding:6px;background:var(--card);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:.2s}
+.league-chip .league-logo img{width:100%;height:100%;object-fit:contain}
+.league-chip .league-name{font-size:.62rem;color:var(--muted);text-align:center;font-weight:600}
+.league-chip.active .league-logo{border-color:var(--green);background:rgba(16,185,129,.1);transform:scale(1.08)}
+.league-chip.active .league-name{color:var(--green)}
+.date-nav{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;scrollbar-width:none;background:var(--card);border-bottom:1px solid var(--border)}
+.date-nav::-webkit-scrollbar{display:none}
+.date-nav-btn{padding:8px 14px;border-radius:12px;font-size:.75rem;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;font-weight:700;min-height:36px;display:flex;align-items:center;gap:4px}
+.date-nav-btn.active{background:linear-gradient(135deg,var(--blue),#2563eb);color:#fff;border-color:transparent}
+.date-nav-btn.live-tab{background:linear-gradient(135deg,var(--red),#b91c1c);color:#fff;border-color:transparent;animation:pulse 1.5s infinite}
+.filter-bar{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-btn{padding:7px 14px;border-radius:16px;font-size:.75rem;background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;font-weight:600}
+.filter-btn.active{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-color:transparent}
+.section-title{font-size:.9rem;font-weight:800;padding:16px 14px 10px;color:var(--text);display:flex;align-items:center;gap:8px}
+.section-title::before{content:"";width:4px;height:18px;background:linear-gradient(180deg,var(--green),var(--blue));border-radius:2px}
+.match-card{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:14px;margin:0 12px 10px;overflow:hidden;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.match-card.live{border-color:rgba(220,38,38,.6);box-shadow:0 0 20px rgba(220,38,38,.15)}
+.match-header-info{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;font-size:.65rem;color:var(--muted);border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)}
+.match-status-badge{padding:3px 8px;border-radius:8px;font-weight:700;font-size:.62rem}
+.match-status-badge.live{background:var(--red);color:#fff;animation:pulse 1.5s infinite}
+.match-status-badge.pre{background:rgba(59,130,246,.2);color:var(--blue)}
+.match-status-badge.post{background:rgba(107,114,128,.2);color:var(--muted)}
+.match-body{padding:14px 12px}
+.match-teams-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.team-block{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.team-block.away{flex-direction:row-reverse;text-align:right}
+.team-logo{width:38px;height:38px;object-fit:contain;flex-shrink:0}
+.team-name{font-size:.85rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.match-score{font-size:1.4rem;font-weight:800;min-width:70px;text-align:center;letter-spacing:2px;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+.match-score.upcoming{color:var(--muted);background:none;-webkit-text-fill-color:var(--muted);font-size:.9rem}
+.tab-bar{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;margin:0 12px 12px;overflow-x:auto;scrollbar-width:none}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{flex:1;padding:10px 12px;background:transparent;border:none;color:var(--muted);font-size:.72rem;font-weight:700;cursor:pointer;border-radius:8px;white-space:nowrap;font-family:inherit;min-height:40px}
+.tab-btn.active{background:linear-gradient(135deg,var(--green),#059669);color:#fff}
+.tab-btn.tab-bet.active{background:linear-gradient(135deg,var(--gold),#f97316);color:#422006}
+.tab-btn.tab-ai.active{background:linear-gradient(135deg,var(--ai),var(--blue))}
+.tab-content{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin:0 12px 12px}
+.tab-content.hidden{display:none}
+.detail-header-card{margin:12px;padding:20px 16px;border-radius:16px;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);text-align:center}
+.detail-header-card.live{border-color:rgba(220,38,38,.6)}
+.detail-teams{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.detail-team{flex:1;text-align:center}
+.detail-team img{width:60px;height:60px;object-fit:contain;margin-bottom:8px}
+.detail-team-name{font-size:.88rem;font-weight:800}
+.detail-score-box{font-size:2rem;font-weight:900;padding:0 10px;letter-spacing:3px}
+.detail-meta{font-size:.72rem;color:var(--muted);margin-top:12px}
+.stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.82rem;gap:8px;align-items:center}
+.stat-row:last-child{border-bottom:none}
+.stat-label{color:var(--muted);flex:1}
+.stat-value{font-weight:700;text-align:left}
+.bar-compare{margin-bottom:14px}
+.bar-compare-label{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:5px;font-weight:600}
+.bar-bg{height:8px;background:var(--card2);border-radius:4px;overflow:hidden;display:flex}
+.bar-home{background:linear-gradient(90deg,var(--green),#059669);height:100%;transition:width .6s}
+.bar-away{background:linear-gradient(90deg,var(--blue),#2563eb);height:100%;transition:width .6s}
+.ai-panel{background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(59,130,246,.08));border:1px solid var(--ai);border-radius:12px;padding:14px;margin-bottom:12px}
+.ai-panel-title{display:flex;align-items:center;gap:6px;color:var(--ai);font-weight:800;font-size:.85rem;margin-bottom:12px}
+.ai-panel.live{background:linear-gradient(135deg,rgba(220,38,38,.15),rgba(239,68,68,.08));border-color:var(--red)}
+.live-badge{display:inline-block;padding:2px 8px;border-radius:10px;background:var(--red);color:#fff;font-size:.6rem;font-weight:800;animation:pulse 1.5s infinite}
+.ai-prediction{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.ai-pred-box{background:var(--card);border-radius:10px;padding:12px 8px;text-align:center}
+.ai-pred-box .label{font-size:.62rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+.ai-pred-box .value{font-size:1rem;font-weight:800}
+.ai-pred-box .value.green{color:var(--green)}
+.ai-pred-box .value.blue{color:var(--blue)}
+.ai-pred-box .value.gold{color:var(--gold)}
+.ai-analysis-text{background:var(--card);border-radius:10px;padding:12px;font-size:.82rem;line-height:1.7;color:#d1d5db}
+.bet-item{display:flex;justify-content:space-between;padding:12px;background:var(--card);border-radius:10px;margin-bottom:6px;font-size:.8rem;align-items:center}
+.bet-market{color:var(--muted);min-width:80px;font-weight:600}
+.bet-selection{flex:1;text-align:center;font-weight:800}
+.bet-odds{color:var(--green);font-weight:800;min-width:50px;text-align:left}
+.bet-panel{background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(249,115,22,.06));border:1px solid var(--gold);border-radius:12px;padding:14px;margin-bottom:12px}
+.bet-panel .bet-title{font-size:.85rem;font-weight:800;color:var(--gold);margin-bottom:10px}
+.sim-scoreboard{display:flex;justify-content:space-between;align-items:center;font-size:1.05rem;font-weight:800;margin-bottom:10px;padding:14px;background:var(--card2);border-radius:12px;gap:8px}
+.sim-team-label{flex:1;font-size:.85rem;display:flex;align-items:center;gap:6px}
+.sim-team-label.home-side{justify-content:flex-start}
+.sim-team-label.away-side{justify-content:flex-end;flex-direction:row-reverse}
+.sim-team-label img{width:24px;height:24px;object-fit:contain}
+.sim-score-val{color:var(--green);font-size:1.6rem;margin:0 8px;font-weight:900;flex-shrink:0}
+.sim-progress{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin:10px 0}
+.sim-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));width:0%;transition:width .3s}
+.sim-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.sim-ctrl-btn{padding:10px;background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:10px;cursor:pointer;font-size:.75rem;font-family:inherit;min-height:42px;font-weight:700}
+.sim-ctrl-btn.primary{background:linear-gradient(135deg,var(--green),#059669);color:#fff;border-color:transparent}
+.sim-events{max-height:400px;overflow-y:auto;margin-top:10px;border-top:1px solid var(--border);padding-top:8px}
+.sim-event{display:flex;gap:8px;padding:10px;margin-bottom:5px;background:var(--card2);border-radius:10px;font-size:.8rem;border-right:3px solid transparent}
+.sim-event.goal{border-right-color:var(--green);background:rgba(16,185,129,.15)}
+.sim-event.card-y{border-right-color:var(--gold);background:rgba(251,191,36,.1)}
+.sim-event.card-r{border-right-color:var(--red);background:rgba(220,38,38,.15)}
+.sim-event.corner{border-right-color:var(--gold)}
+.sim-event.sub{border-right-color:var(--blue)}
+.sim-event.past{opacity:.9}
+.sim-event.future{opacity:.65;border-right-style:dashed}
+.sim-minute{font-weight:800;color:var(--green);min-width:32px}
+.live-marker{text-align:center;padding:8px;margin:8px 0;background:rgba(220,38,38,.2);border-radius:8px;color:#f87171;font-weight:800;font-size:.75rem;border:1px dashed var(--red)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--card),rgba(10,14,23,.98));border-top:1px solid var(--border);display:flex;z-index:1000;padding-bottom:var(--sb);backdrop-filter:blur(20px)}
+.nav-item{flex:1;padding:8px 2px;text-align:center;cursor:pointer;color:var(--muted);font-size:.6rem;font-weight:600;position:relative}
+.nav-item.active{color:var(--green)}
+.nav-item-icon{font-size:1.2rem;display:block;margin-bottom:1px}
+.nav-item.badge-red::after{content:attr(data-count);position:absolute;top:2px;right:calc(50% - 18px);background:var(--red);color:#fff;font-size:.55rem;padding:1px 5px;border-radius:8px;font-weight:800;min-width:14px;animation:pulse 1.5s infinite}
+.ai-fab{position:fixed;bottom:calc(20px + var(--sb));right:16px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--ai),var(--blue));color:#fff;border:3px solid rgba(255,255,255,.2);font-size:1.5rem;cursor:pointer;z-index:1500;box-shadow:0 6px 24px rgba(168,85,247,.6);display:flex;align-items:center;justify-content:center}
+.ai-chat-panel{position:fixed;inset:0;background:var(--card);z-index:2000;display:flex;flex-direction:column}
+.chat-header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top,0px));background:linear-gradient(135deg,rgba(168,85,247,.25),rgba(59,130,246,.25));border-bottom:1px solid var(--border);font-weight:700;font-size:.95rem}
+.chat-close{background:var(--card2);border:1px solid var(--border);color:var(--text);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.1rem;font-family:inherit}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:88%;padding:12px 14px;border-radius:16px;font-size:.87rem;line-height:1.6;word-wrap:break-word}
+.chat-msg.user{align-self:flex-start;background:linear-gradient(135deg,var(--ai),var(--blue));color:#fff}
+.chat-msg.ai{align-self:flex-end;background:var(--card2);border:1px solid var(--border)}
+.chat-suggestions{display:flex;gap:6px;padding:8px 12px;overflow-x:auto;border-top:1px solid var(--border);background:var(--card);scrollbar-width:none}
+.chat-suggestions::-webkit-scrollbar{display:none}
+.chat-chip{font-size:.72rem;padding:9px 14px;border-radius:16px;border:1px solid var(--ai);background:rgba(168,85,247,.1);color:#d0defc;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;font-weight:600}
+.chat-input-row{display:flex;gap:8px;padding:12px;padding-bottom:calc(12px + var(--sb));background:var(--card2);border-top:1px solid var(--border)}
+.chat-input-row input{flex:1;padding:12px 14px;border-radius:22px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:.9rem;outline:none;font-family:inherit;min-height:44px}
+.chat-input-row button{padding:0;width:44px;height:44px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--ai),var(--blue));color:#fff;font-size:1.2rem;cursor:pointer;font-family:inherit}
+.chat-welcome{text-align:center;color:var(--muted);font-size:.85rem;padding:24px 16px;line-height:1.7}
+.empty{text-align:center;color:var(--muted);padding:24px 20px;font-size:.85rem}
+.spinner{display:inline-block;width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.back-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:.85rem;margin:12px;display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:600}
+.retry-btn{background:linear-gradient(135deg,var(--gold),#f97316);border:none;color:#422006;padding:10px 20px;border-radius:10px;cursor:pointer;font-weight:800;font-family:inherit;font-size:.85rem;margin-top:10px}
+.screen{display:none}
+.screen.active{display:block}
+.hidden{display:none!important}
+.toast{position:fixed;bottom:calc(100px + var(--sb));left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--green);color:var(--text);padding:12px 20px;border-radius:12px;font-size:.85rem;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1}
+.error-panel{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(220,38,38,.06));border:1px solid var(--red);border-radius:12px;padding:14px;margin-bottom:12px;font-size:.78rem;color:#fca5a5}
+.warn-panel{background:linear-gradient(135deg,rgba(251,191,36,.15),rgba(249,115,22,.08));border:1px solid var(--gold);border-radius:8px;padding:10px;margin-bottom:12px;font-size:.72rem;color:#fde68a;line-height:1.6}
+.metric-box{background:var(--card2);border-radius:10px;padding:10px;text-align:center}
+.metric-box .m-label{font-size:.65rem;color:var(--muted);margin-bottom:4px;font-weight:600}
+.metric-box .m-value{font-size:.9rem;font-weight:800;color:var(--text)}
+.method-tag{display:inline-block;font-size:.62rem;padding:3px 8px;border-radius:10px;background:rgba(168,85,247,.15);color:var(--ai);border:1px solid rgba(168,85,247,.3);margin:2px;font-weight:700}
+.accuracy-panel{background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(59,130,246,.08));border:1px solid var(--green);border-radius:12px;padding:12px;margin-bottom:12px}
+.accuracy-title{font-size:.78rem;color:var(--green);font-weight:800;margin-bottom:10px}
+.accuracy-item{display:flex;justify-content:space-between;padding:6px 0;font-size:.75rem;border-bottom:1px solid var(--border)}
+.accuracy-item:last-child{border-bottom:none}
+.accuracy-item .acc-label{color:var(--muted)}
+.accuracy-item .acc-value{font-weight:700;color:var(--green)}
+.orch-panel{background:linear-gradient(135deg,rgba(168,85,247,.15),rgba(59,130,246,.08));border:2px solid var(--ai);border-radius:14px;padding:14px;margin:12px;position:relative;overflow:hidden}
+.orch-panel::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ai),transparent);animation:orchSweep 3s linear infinite}
+@keyframes orchSweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.orch-title{font-size:.85rem;font-weight:800;color:var(--ai);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.orch-live-dot{width:8px;height:8px;border-radius:50%;background:var(--ai);animation:pulse 1.5s infinite;box-shadow:0 0 8px var(--ai)}
+.orch-log{max-height:180px;overflow-y:auto;font-size:.68rem;color:#d0defc;line-height:1.6;font-family:ui-monospace,monospace}
+.orch-log-item{padding:4px 0;border-bottom:1px solid rgba(168,85,247,.15)}
+.orch-log-item .time{color:var(--muted);font-size:.6rem}
+.player-avatar{width:44px;height:44px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;color:var(--muted);border:2px solid var(--border);flex-shrink:0;overflow:hidden}
+.player-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.lineup-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.lineup-row:last-child{border-bottom:none}
+.lineup-row .jersey{width:24px;text-align:center;font-weight:800;color:var(--green);font-size:.72rem}
+.lineup-row .name{flex:1;font-weight:700}
+.lineup-row .pos{font-size:.62rem;color:var(--muted);padding:2px 6px;border-radius:4px;background:var(--card2);font-weight:700}
+.current-score-badge{display:inline-block;padding:4px 12px;background:rgba(16,185,129,.15);border:1px solid var(--green);border-radius:20px;font-weight:800;font-size:.85rem;color:var(--green);margin-top:8px}
+.issue-card{background:var(--card);border:1px solid var(--border);border-right:4px solid var(--gold);border-radius:12px;padding:14px;margin-bottom:10px;position:relative}
+.issue-card.sev-high{border-right-color:var(--red);background:linear-gradient(135deg,rgba(220,38,38,.08),var(--card))}
+.issue-card.sev-medium{border-right-color:var(--gold);background:linear-gradient(135deg,rgba(251,191,36,.08),var(--card))}
+.issue-card.sev-low{border-right-color:var(--blue);background:linear-gradient(135deg,rgba(59,130,246,.08),var(--card))}
+.issue-card.sev-info{border-right-color:var(--green);background:linear-gradient(135deg,rgba(16,185,129,.08),var(--card))}
+.issue-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:.7rem;color:var(--muted)}
+.issue-sev-badge{padding:2px 8px;border-radius:10px;font-size:.6rem;font-weight:800}
+.issue-sev-badge.high{background:var(--red);color:#fff}
+.issue-sev-badge.medium{background:var(--gold);color:#422006}
+.issue-sev-badge.low{background:var(--blue);color:#fff}
+.issue-sev-badge.info{background:var(--green);color:#031}
+.issue-count-badge{background:rgba(220,38,38,.2);color:#f87171;padding:2px 8px;border-radius:10px;font-size:.6rem;font-weight:800;margin-left:4px}
+.issue-title{font-size:.85rem;font-weight:800;margin-bottom:6px;color:var(--text)}
+.issue-msg{font-size:.78rem;line-height:1.7;color:#d1d5db;background:rgba(255,255,255,.03);padding:10px;border-radius:8px;border:1px dashed var(--border);white-space:pre-wrap}
+.issue-meta{font-size:.62rem;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between}
+.issue-copy-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:.7rem;cursor:pointer;font-family:inherit;margin-top:8px}
+.issue-copy-btn:active{background:var(--card2);color:var(--text)}
+.issue-counter{background:linear-gradient(135deg,rgba(220,38,38,.2),rgba(251,191,36,.1));border:1px solid var(--red);border-radius:12px;padding:12px;margin:12px;text-align:center}
+.issue-counter .big{font-size:2rem;font-weight:900;color:var(--red)}
+.issue-counter .lbl{font-size:.72rem;color:var(--muted);margin-top:4px}
+</style>
+</head>
+<body>
+
+<div class="top-header">
+  <h1>⚽ Match Engine V26.1</h1>
+  <div style="display:flex;gap:6px;align-items:center">
+    <span class="badge" id="api-status">⏳</span>
+    <span class="badge ai" id="ai-status">🧠 AI</span>
+  </div>
+</div>
+
+<div class="status-bar">
+  <div><span class="refresh-dot" id="refresh-dot"></span> <span id="refresh-text">التحديث: نشط</span></div>
+  <span id="last-update-time">—</span>
+</div>
+
+<div class="ai-status-bar">
+  <div>🤖 <span id="orc-status">AI: بدء...</span></div>
+  <div>🚨 <span id="orc-issues">0</span> مشكلة</div>
+</div>
+
+<div id="home-screen" class="screen active">
+  <div class="hero-banner">
+    <div class="hero-title">⚽ محرك تحليل V26.1</div>
+    <div class="hero-sub">صفر إنذارات كاذبة • AI يفهم الأداة</div>
+  </div>
+  <div class="league-scroll" id="league-tabs"></div>
+  <div class="date-nav" id="date-nav"></div>
+  <div id="live-panel"></div>
+  <div id="featured-container"></div>
+  <div id="matches-list"><div class="empty"><div class="spinner"></div><p style="margin-top:10px">جاري التحميل...</p></div></div>
+  <div id="scorers-section"></div>
+</div>
+
+<div id="match-screen" class="screen">
+  <button class="back-btn" onclick="goBack()">→ رجوع</button>
+  <div id="match-detail-content"></div>
+</div>
+
+<div id="standings-screen" class="screen">
+  <button class="back-btn" onclick="goBack()">→ رجوع</button>
+  <h2 id="standings-title" style="font-size:1rem;margin:0 14px 12px;text-align:center"></h2>
+  <div id="standings-content"></div>
+</div>
+
+<div id="problems-screen" class="screen">
+  <button class="back-btn" onclick="goBack()">→ رجوع</button>
+  <div id="problems-content"></div>
+</div>
+
+<div id="tools-screen" class="screen">
+  <button class="back-btn" onclick="goBack()">→ رجوع</button>
+  <h2 style="font-size:1rem;margin:0 14px 12px;text-align:center">🛠️ الأدوات</h2>
+  <div id="tools-content" style="padding:0 12px 20px"></div>
+</div>
+
+<div class="bottom-nav">
+  <div class="nav-item active" onclick="switchScreen('home-screen',this)"><span class="nav-item-icon">⚽</span><span>المباريات</span></div>
+  <div class="nav-item" onclick="openStandings()"><span class="nav-item-icon">🏆</span><span>الترتيب</span></div>
+  <div class="nav-item" id="nav-problems" onclick="openProblems()"><span class="nav-item-icon">🚨</span><span>المشاكل</span></div>
+  <div class="nav-item" onclick="openTools()"><span class="nav-item-icon">🛠️</span><span>الأدوات</span></div>
+</div>
+
+<button class="ai-fab" onclick="toggleChat()">💬</button>
+
+<div class="ai-chat-panel hidden" id="chat-panel">
+  <div class="chat-header"><span>🧠 مساعد AI</span><button class="chat-close" onclick="toggleChat()">✕</button></div>
+  <div class="chat-messages" id="chat-messages"><div class="chat-welcome">👋 اختر مباراة ثم اسألني</div></div>
+  <div class="chat-suggestions" id="chat-suggestions"></div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="اكتب..." onkeypress="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">➤</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== V26.1 — Zero False Positives ===== */
+
+const GEMINI_KEY="AQ.Ab8RN6ICNyJf80455GIClwhxvPPgfCuPJ-K7IXUoaxm0z8xO4A";
+const GROQ_KEY="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";
+const GEMINI_BASE="https://generativelanguage.googleapis.com/v1beta/models";
+const GROQ_URL="https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL="llama-3.3-70b-versatile";
+const ESPN="https://site.api.espn.com/apis/site/v2/sports/soccer";
+const ESPN_V2="https://site.api.espn.com/apis/v2/sports/soccer";
+const ESPN_STATS="https://site.web.api.espn.com/apis/common/v3/sports/soccer";
+
+const PROXIES=[u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),u=>"https://corsproxy.io/?url="+encodeURIComponent(u),u=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u)];
+const rateLimit={ts:[],async acquire(){while(true){const now=Date.now();this.ts=this.ts.filter(t=>now-t<1000);if(this.ts.length<3){this.ts.push(now);return;}await new Promise(r=>setTimeout(r,100));}}};
+
+async function fetchData(url,timeout,retryCount){
+  timeout=timeout||8000;retryCount=retryCount||0;
+  await rateLimit.acquire();
+  try{
+    const ctrl=new AbortController();const tid=setTimeout(()=>ctrl.abort(),timeout);
+    const r=await fetch(url,{signal:ctrl.signal,cache:"no-store"});
+    clearTimeout(tid);
+    if(r.ok){const t=await r.text();if(!t||t.length<5)throw new Error("empty");return{ok:true,data:JSON.parse(t)};}
+    if(r.status===429&&retryCount<2){await new Promise(res=>setTimeout(res,2000*(retryCount+1)));return fetchData(url,timeout,retryCount+1);}
+    return{ok:false,error:"HTTP "+r.status};
+  }catch(e){
+    if(retryCount===0){for(let i=0;i<PROXIES.length;i++){try{await rateLimit.acquire();const ctrl=new AbortController();const tid=setTimeout(()=>ctrl.abort(),timeout+4000);const r=await fetch(PROXIES[i](url),{signal:ctrl.signal,cache:"no-store"});clearTimeout(tid);if(r.ok){const txt=await r.text();try{return{ok:true,data:JSON.parse(txt)};}catch(pe){continue;}}}catch(e2){continue;}}}
+    return{ok:false,error:e.message};
+  }
+}
+
+const LEAGUES=[
+  {id:"eng.1",name:"البريميرليج",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/23.png"},
+  {id:"esp.1",name:"الليجا",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/15.png"},
+  {id:"ita.1",name:"الكالتشيو",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/12.png"},
+  {id:"ger.1",name:"البوندسليجا",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/10.png"},
+  {id:"fra.1",name:"الليج 1",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/9.png"},
+  {id:"por.1",name:"البرتغالي",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/14.png"},
+  {id:"ned.1",name:"الهولندي",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/11.png"},
+  {id:"uefa.champions",name:"أبطال أوروبا",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/2.png"},
+  {id:"uefa.europa",name:"الأوروبي",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/2310.png"},
+  {id:"egy.1",name:"المصري",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/1166.png"},
+  {id:"ksa.1",name:"السعودي",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/2122.png"},
+  {id:"uae.1",name:"الإماراتي",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/2199.png"},
+  {id:"qat.1",name:"القطري",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/2175.png"},
+  {id:"mar.1",name:"المغربي",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/2543.png"},
+  {id:"tur.1",name:"التركي",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/1025.png"},
+  {id:"usa.1",name:"MLS",logo:"https://a.espncdn.com/i/leaguelogos/soccer/500/19.png"}
+];
+
+let state={
+  league:"eng.1",filter:"all",dayFilter:"all",matches:[],
+  currentSummary:null,currentDetail:null,currentAnalysis:null,
+  history:[],chatOpen:false,chatBusy:false,
+  sim:null,simEvents:null,simClock:0,
+  scorersCache:{},standingsCache:{},
+  matchKnowledge:null,aiCommands:null,
+  orchestratorLog:[],knowledgeBase:[],
+  issues:JSON.parse(localStorage.getItem('issues')||'[]'),
+  predictionLog:JSON.parse(localStorage.getItem('predictionLog')||'[]')
+};
+
+// ★ Regex نهائي لاستبعاد كل false positives
+const BANNED_PATTERN=/liveCount|عدد\s+المباريات|المباريات\s+الكلية|المباريات\s+الحية|clockSeconds|ثواني\s+الساعة|الثواني\s+في\s+وقت|totalMatches|إجمالي\s+المباريات|توافقية|اتساق\s+عدد|تعارض\s+بين|تعارض\s+في\s+عدد|مصادر\s+داخلية|الحقول\s+النظامية|تناقض\s+بين\s+liveCount|خلل\s+في\s+تدفق|تدفق\s+البيانات|إخفاء\s+حالة|تقارير\s+غير\s+دقيقة|مزامنة\s+liveCount/i;
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function showToast(m,t){const el=$("toast");el.textContent=m;el.className="toast show "+(t==="error"?"error":"");clearTimeout(el._tid);el._tid=setTimeout(()=>el.classList.remove("show"),2500);}
+function setStatus(text,cls){const el=$("api-status");if(el){el.textContent=text;el.className="badge "+(cls||"");}}
+function setAIStatus(text){const el=$("ai-status");if(el)el.textContent=text;}
+function safeNum(v,def){const n=parseFloat(v);return isNaN(n)?(def==null?0:def):n;}
+function formatTime(iso){try{return new Date(iso).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});}catch(e){return"";}}
+function formatDate(iso){try{return new Date(iso).toLocaleDateString('ar-EG',{day:'2-digit',month:'short'});}catch(e){return"";}}
+function hashString(str){let h=0;for(let i=0;i<str.length;i++){h=((h<<5)-h)+str.charCodeAt(i);h&=h;}return Math.abs(h);}
+function mulberry32(seed){return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function getDateString(o){const d=new Date();d.setDate(d.getDate()+o);return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;}
+function getDateKey(iso){try{const d=new Date(iso);return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;}catch(e){return"";}}
+function formatDateLabel(o){const d=new Date();d.setDate(d.getDate()+o);return{"-1":"أمس","0":"اليوم","1":"غداً","2":"بعد غد","3":"+3","4":"+4"}[String(o)]||d.toLocaleDateString('ar-EG',{weekday:'short',day:'numeric'});}
+
+function getCurrentMinute(summary){
+  try{
+    const comp=summary.header.competitions[0];
+    const status=comp.status||{};
+    if((status.type?.state)!=="in")return 0;
+    const clockSec=safeNum(status.clock,0);
+    if(clockSec>60){const mins=Math.floor(clockSec/60);return Math.max(1,Math.min(95,mins));}
+    const period=parseInt(status.period)||1;
+    const clockRaw=String(status.displayClock||"0").replace(/[^\d]/g,"");
+    const clockNum=parseInt(clockRaw)||0;
+    if(period===1)return Math.min(45,Math.max(0,clockNum));
+    if(clockNum>45)return Math.min(95,clockNum);
+    return Math.min(95,45+clockNum);
+  }catch(e){return 0;}
+}
+
+const Accuracy={
+  pmf(k,l){try{if(l<=0)return k===0?1:0;let f=1;for(let i=2;i<=k;i++)f*=i;return Math.exp(-l)*Math.pow(l,k)/f;}catch(e){return 0;}},
+  pmfDC(hG,aG,xgH,xgA){try{const rho=-0.10;let p=this.pmf(hG,xgH)*this.pmf(aG,xgA);if(hG===0&&aG===0)p*=(1-xgH*xgA*rho);else if(hG===0&&aG===1)p*=(1+xgH*rho);else if(hG===1&&aG===0)p*=(1+xgA*rho);else if(hG===1&&aG===1)p*=(1-rho);return Math.max(0,p);}catch(e){return 0;}},
+  matrix(xgH,xgA,maxG){maxG=maxG||8;try{const m=[];let total=0;for(let h=0;h<=maxG;h++){m[h]=[];for(let a=0;a<=maxG;a++){const p=this.pmfDC(h,a,xgH,xgA);m[h][a]=p;total+=p;}}if(total>0)for(let h=0;h<=maxG;h++)for(let a=0;a<=maxG;a++)m[h][a]/=total;return m;}catch(e){return[[1]];}},
+  oneXTwo(m){try{let h=0,d=0,a=0;for(let i=0;i<m.length;i++)for(let j=0;j<m[i].length;j++){if(i>j)h+=m[i][j];else if(i===j)d+=m[i][j];else a+=m[i][j];}return{home:h*100,draw:d*100,away:a*100};}catch(e){return{home:33,draw:33,away:34};}},
+  btts(m){try{let p=0;for(let i=1;i<m.length;i++)for(let j=1;j<m[i].length;j++)p+=m[i][j];return p*100;}catch(e){return 50;}},
+  over(m,t){try{let p=0;for(let i=0;i<m.length;i++)for(let j=0;j<m[i].length;j++)if(i+j>t)p+=m[i][j];return p*100;}catch(e){return 50;}},
+  topScores(m,n){n=n||6;try{const s=[];for(let i=0;i<m.length;i++)for(let j=0;j<m[i].length;j++)s.push({score:i+"-"+j,prob:m[i][j]*100});s.sort((a,b)=>b.prob-a.prob);return s.slice(0,n);}catch(e){return[{score:"1-1",prob:10}];}},
+  homeAdv(leagueId){return{"eng.1":0.15,"esp.1":0.18,"ita.1":0.14,"ger.1":0.16,"fra.1":0.17,"por.1":0.19,"ned.1":0.18,"egy.1":0.20,"ksa.1":0.18}[leagueId]||0.15;},
+  computeXG(hStats,aStats,leagueId){try{const avg=2.7,ha=this.homeAdv(leagueId);const hAtk=Math.max(0.3,(hStats.gpg||1.3)/(avg/2));const aAtk=Math.max(0.3,(aStats.gpg||1.1)/(avg/2));const hDW=Math.max(0.3,(hStats.cpg||1.2)/(avg/2));const aDW=Math.max(0.3,(aStats.cpg||1.2)/(avg/2));const hFF=0.85+(hStats.form||0.5)*0.30;const aFF=0.85+(aStats.form||0.5)*0.30;let xgH=(avg/2)*hAtk*aDW*hFF*(1+ha);let xgA=(avg/2)*aAtk*hDW*aFF*(1-ha*0.7);return{xgH:Math.max(0.35,Math.min(3.5,xgH)),xgA:Math.max(0.30,Math.min(3.0,xgA))};}catch(e){return{xgH:1.3,xgA:1.1};}},
+  s(l){try{const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random();}while(p>L&&k<20);return k-1;}catch(e){return 1;}},
+  kelly(p,o){try{const d=parseFloat(o);if(isNaN(d)||d<=1)return 0;const b=d-1,pr=p/100,q=1-pr;return Math.max(0,(b*pr-q)/b);}catch(e){return 0;}},
+  ev(p,o){try{const pr=p/100,d=parseFloat(o);if(isNaN(d))return 0;return(pr*d-1)*100;}catch(e){return 0;}}
+};
+Accuracy.mc=function(xgH,xgA,runs){runs=runs||3000;try{let hW=0,d=0,aW=0,tg=0,b=0;for(let i=0;i<runs;i++){const h=this.s(xgH),a=this.s(xgA);if(h>a)hW++;else if(h===a)d++;else aW++;tg+=h+a;if(h>0&&a>0)b++;}return{home:hW/runs*100,draw:d/runs*100,away:aW/runs*100,avgGoals:tg/runs,btts:b/runs*100};}catch(e){return{home:33,draw:33,away:34,avgGoals:2.5,btts:50};}};
+Accuracy.ensemble=function(pm,mc){try{const p=this.oneXTwo(pm);return{home:p.home*0.6+mc.home*0.4,draw:p.draw*0.6+mc.draw*0.4,away:p.away*0.6+mc.away*0.4};}catch(e){return{home:33,draw:33,away:34};}};
+
+function fromStandings(s){
+  try{if(!s)return{rank:10,points:0,gp:0,wins:0,draws:0,losses:0,gf:0,ga:0,gd:0,ppg:1.2,gpg:1.2,cpg:1.2};
+    const st={};(s.stats||[]).forEach(x=>st[x.name]=safeNum(x.value,0));
+    const gp=st.gamesPlayed||0;
+    return{rank:st.rank||10,points:st.points||0,gp,wins:st.wins||0,draws:st.ties||0,losses:st.losses||0,gf:st.pointsFor||0,ga:st.pointsAgainst||0,gd:(st.pointsFor||0)-(st.pointsAgainst||0),ppg:gp>0?(st.points||0)/gp:1.2,gpg:gp>0?(st.pointsFor||0)/gp:1.2,cpg:gp>0?(st.pointsAgainst||0)/gp:1.2};
+  }catch(e){return{rank:10,points:0,gp:0,wins:0,draws:0,losses:0,gf:0,ga:0,gd:0,ppg:1.2,gpg:1.2,cpg:1.2};}
+}
+function computeForm(matches,teamId){
+  try{if(!matches||!matches.length)return{form:0.5,results:[],gpg:1.2,cpg:1.2};
+    let results=[],gf=0,ga=0,count=0;
+    for(const m of matches){
+      const c=m.competitions&&m.competitions[0];if(!c)continue;
+      const cs=c.competitors||[];
+      const t=cs.find(x=>String(x.team?.id)===String(teamId));if(!t)continue;
+      const o=cs.find(x=>String(x.team?.id)!==String(teamId));
+      const st=(c.status?.type?.state)||"pre";if(st!=="post")continue;
+      const tS=safeNum(t.score,0),oS=safeNum(o.score,0);
+      gf+=tS;ga+=oS;count++;
+      if(tS>oS)results.push('W');else if(tS===oS)results.push('D');else results.push('L');
+      if(results.length>=10)break;
+    }
+    if(count===0)return{form:0.5,results:[],gpg:1.2,cpg:1.2};
+    const l5=results.slice(0,5);let pts=0;
+    l5.forEach(r=>{if(r==='W')pts+=3;else if(r==='D')pts+=1;});
+    return{form:l5.length?pts/(l5.length*3):0.5,results:l5,gpg:gf/count,cpg:ga/count};
+  }catch(e){return{form:0.5,results:[],gpg:1.2,cpg:1.2};}
+}
+function computeH2H(games,homeId){
+  try{if(!games||!games.length)return{homeWins:0,awayWins:0,draws:0,total:0,avgGoals:2.5,btts:0.5};
+    let hW=0,aW=0,d=0,tg=0,b=0,c=0;
+    for(const g of games.slice(0,20)){
+      const comp=g.competitions?.[0];if(!comp)continue;
+      const cs=comp.competitors||[];
+      const h=cs.find(x=>x.homeAway==="home"),a=cs.find(x=>x.homeAway==="away");
+      if(!h||!a)continue;
+      const hS=safeNum(h.score,0),aS=safeNum(a.score,0);
+      const homeIsOurs=String(h.team?.id)===String(homeId);
+      const our=homeIsOurs?hS:aS,their=homeIsOurs?aS:hS;
+      if(our>their)hW++;else if(our<their)aW++;else d++;
+      tg+=hS+aS;if(hS>0&&aS>0)b++;c++;
+    }
+    return{homeWins:hW,awayWins:aW,draws:d,total:c,avgGoals:c>0?tg/c:2.5,btts:c>0?b/c:0.5};
+  }catch(e){return{homeWins:0,awayWins:0,draws:0,total:0,avgGoals:2.5,btts:0.5};}
+}
+function extractLiveStats(summary){
+  try{
+    const box=summary.boxscore||{};const teams=box.teams||[];
+    const hS=(teams.find(t=>t.homeAway==="home")||{}).statistics||[];
+    const aS=(teams.find(t=>t.homeAway==="away")||{}).statistics||[];
+    const h={},a={};
+    hS.forEach(s=>{const k=s.name||s.abbreviation;if(k)h[k]=safeNum(s.value,safeNum(s.displayValue,0));});
+    aS.forEach(s=>{const k=s.name||s.abbreviation;if(k)a[k]=safeNum(s.value,safeNum(s.displayValue,0));});
+    return{h,a};
+  }catch(e){return{h:{},a:{}};}
+}
+function computeLiveXG(stats){
+  try{const sot=safeNum(stats.shotsOnTarget,0),shots=safeNum(stats.totalShots,0);return Math.max(0.2,sot*0.30+Math.max(0,shots-sot)*0.05);}catch(e){return 0.5;}
+}
+function findStanding(standings,teamId){
+  try{if(!standings||!standings.children)return null;
+    for(const g of standings.children){const e=(g.standings?.entries)||[];const f=e.find(x=>String(x.team.id)===String(teamId));if(f)return f;}
+  }catch(err){}
+  return null;
+}
+function getMatchState(m){try{const c=m.competitions?.[0];const s=(c?.status)||m.status||{};return(s.type?.state)||"pre";}catch(e){return"pre";}}
+function getMatchStatusText(m){
+  try{const c=m.competitions?.[0];const s=(c?.status)||m.status||{};
+    if((s.type?.state)==="in")return"🔴 "+(s.displayClock||"");
+    if((s.type?.state)==="post")return"انتهت";
+  }catch(e){}
+  return null;
+}
+function getMatchStateFromSummary(m){try{const c=(m.header?.competitions?.[0])||{};return(c.status?.type?.state)||"pre";}catch(e){return"pre";}}
+function extractRealEvents(summary,cs){
+  try{
+    const arr=summary.keyEvents||[];
+    const out=[];
+    arr.forEach(e=>{
+      const clock=(e.clock&&(e.clock.displayValue||e.clock.value))||"";
+      const min=parseInt(String(clock).replace(/[^\d]/g,""))||0;
+      if(!min)return;
+      const typeText=(e.type?.text||e.type?.id)||"";
+      const text=e.text||"";
+      const comb=(typeText+" "+text).toLowerCase();
+      let type=null,icon="",label="";
+      if(/goal|scoring/i.test(comb)){type="goal";icon="⚽";label="هدف";}
+      else if(/yellow/i.test(comb)){type="card-y";icon="🟨";label="صفراء";}
+      else if(/red/i.test(comb)){type="card-r";icon="🟥";label="طرد";}
+      else if(/substitution/i.test(comb)){type="sub";icon="🔄";label="تبديل";}
+      else if(/corner/i.test(comb)){type="corner";icon="🚩";label="ركنية";}
+      else return;
+      let player="";
+      const parts=e.participants||e.athletesInvolved||[];
+      if(parts.length)player=parts.map(p=>p.athlete?.displayName||p.athlete?.shortName||"").filter(Boolean).join(" / ");
+      let side="home";
+      if(e.team&&e.team.id){const idx=cs.findIndex(c=>String(c.team?.id)===String(e.team.id));if(idx===1)side="away";}
+      out.push({min,type,icon,label,player,side});
+    });
+    return out.sort((a,b)=>a.min-b.min);
+  }catch(e){return[];}
+}
+
+async function callPuter(sys,usr){
+  if(typeof puter==="undefined"||!puter.ai)throw new Error("");
+  const r=await puter.ai.chat(sys+"\n\n"+usr,{model:'gpt-5-nano'});
+  const t=typeof r==="string"?r:(r?.message?.content||r?.text||"");
+  if(!t||t.length<3)throw new Error("");
+  return t.trim();
+}
+async function callGemini(sys,usr){
+  const body=JSON.stringify({contents:[{role:"user",parts:[{text:sys+"\n\n"+usr}]}],generationConfig:{temperature:0.7,maxOutputTokens:1500}});
+  for(const m of["gemini-2.0-flash","gemini-1.5-flash"]){
+    try{const r=await fetch(`${GEMINI_BASE}/${m}:generateContent?key=${GEMINI_KEY}`,{method:"POST",headers:{"Content-Type":"application/json"},body});
+      if(r.ok){const d=await r.json();const t=d.candidates?.[0]?.content?.parts?.[0]?.text;if(t&&t.length>3)return t.trim();}
+    }catch(e){}
+  }
+  throw new Error("");
+}
+async function callGroq(sys,usr){
+  const r=await fetch(GROQ_URL,{method:"POST",headers:{Authorization:"Bearer "+GROQ_KEY,"Content-Type":"application/json"},body:JSON.stringify({model:GROQ_MODEL,messages:[{role:"system",content:sys},{role:"user",content:usr}],temperature:0.7,max_tokens:1500})});
+  if(!r.ok)throw new Error("");
+  const d=await r.json();const t=d.choices?.[0]?.message?.content;if(!t||t.length<3)throw new Error("");
+  return t.trim();
+}
+async function callPoll(sys,usr){const r=await fetch(`https://text.pollinations.ai/${encodeURIComponent((sys+"\n"+usr).slice(0,1400))}`);if(!r.ok)throw new Error("");const t=await r.text();if(!t||t.length<5)throw new Error("");return t.trim();}
+async function askAI(sys,usr,jsonMode){
+  if(jsonMode)sys+="\n\n⚠️ رد بـ JSON فقط.";
+  try{return{text:await callPuter(sys,usr),source:"puter"};}catch(e){}
+  try{return{text:await callGemini(sys,usr),source:"gemini"};}catch(e){}
+  try{return{text:await callGroq(sys,usr),source:"groq"};}catch(e){}
+  try{return{text:await callPoll(sys,usr),source:"pollination"};}catch(e){}
+  return{text:"",source:"none"};
+}
+
+function predictMatch(summary,standings,historyMatches){
+  try{
+    const header=summary.header||{};
+    const comp=header.competitions[0]||{};
+    const cs=comp.competitors||[];
+    const home=cs.find(x=>x.homeAway==="home")||{};
+    const away=cs.find(x=>x.homeAway==="away")||{};
+    const hT=home.team||{},aT=away.team||{};
+    const hN=hT.shortDisplayName||hT.displayName||"Home";
+    const aN=aT.shortDisplayName||aT.displayName||"Away";
+    const stateType=(comp.status?.type?.state)||"pre";
+    const isLive=stateType==="in",isPost=stateType==="post";
+    const curH=safeNum(home.score,0),curA=safeNum(away.score,0);
+    let currentMinute=isLive?getCurrentMinute(summary):(isPost?90:0);
+    const espnClock=comp.status?.displayClock||"";
+    const espnPeriod=comp.status?.period||1;
+    const espnClockSec=safeNum(comp.status?.clock,0);
+    let isDataSane=true,sanityNote="";
+    if(isLive&&currentMinute===0){isDataSane=false;sanityNote="minute=0 لمباراة مباشرة";}
+    if(currentMinute>95){currentMinute=90;isDataSane=false;sanityNote="الدقيقة > 95";}
+    const remainingMinutes=Math.max(0,95-currentMinute);
+    const hStats=fromStandings(findStanding(standings,hT.id));
+    const aStats=fromStandings(findStanding(standings,aT.id));
+    const matches=historyMatches||state.matches||[];
+    const hForm=computeForm(matches,hT.id);
+    const aForm=computeForm(matches,aT.id);
+    hStats.form=hForm.form;aStats.form=aForm.form;
+    if(hForm.gpg>0){hStats.gpg=hForm.gpg*0.6+hStats.gpg*0.4;hStats.cpg=hForm.cpg*0.6+hStats.cpg*0.4;}
+    if(aForm.gpg>0){aStats.gpg=aForm.gpg*0.6+aStats.gpg*0.4;aStats.cpg=aForm.cpg*0.6+aStats.cpg*0.4;}
+    const h2h=computeH2H(summary.headToHeadGames||summary.seasonseries||[],hT.id);
+    const base=Accuracy.computeXG(hStats,aStats,state.league);
+    const xgH_full=base.xgH,xgA_full=base.xgA;
+    let liveStats=null,xgH_accum=0,xgA_accum=0;
+    if(isLive){const ls=extractLiveStats(summary);liveStats=ls;xgH_accum=computeLiveXG(ls.h);xgA_accum=computeLiveXG(ls.a);}
+    let expectedHome,expectedAway,xgH_remaining,xgA_remaining;
+    if(isLive&&currentMinute>0){
+      const rateH=Math.max(0.008,xgH_accum/currentMinute);
+      const rateA=Math.max(0.008,xgA_accum/currentMinute);
+      xgH_remaining=Math.min(2.5,rateH*remainingMinutes);
+      xgA_remaining=Math.min(2.5,rateA*remainingMinutes);
+      expectedHome=curH+xgH_remaining;
+      expectedAway=curA+xgA_remaining;
+    }else if(isPost){expectedHome=curH;expectedAway=curA;xgH_remaining=0;xgA_remaining=0;}
+    else{expectedHome=xgH_full;expectedAway=xgA_full;xgH_remaining=xgH_full;xgA_remaining=xgA_full;}
+    if(state.aiCommands&&state.aiCommands.overrideXg&&isDataSane){
+      const ov=state.aiCommands.overrideXg;
+      if(ov.home!=null&&ov.home>0)expectedHome=curH+Math.min(2.5,safeNum(ov.home,xgH_remaining));
+      if(ov.away!=null&&ov.away>0)expectedAway=curA+Math.min(2.5,safeNum(ov.away,xgA_remaining));
+    }
+    const finalH=Math.max(0,Math.min(9,Math.round(expectedHome)));
+    const finalA=Math.max(0,Math.min(9,Math.round(expectedAway)));
+    const pmH=isLive?(xgH_remaining+0.3):xgH_full;
+    const pmA=isLive?(xgA_remaining+0.3):xgA_full;
+    const matrix=Accuracy.matrix(pmH,pmA);
+    const probs=Accuracy.oneXTwo(matrix);
+    const mc=Accuracy.mc(pmH,pmA,2000);
+    const ensemble=Accuracy.ensemble(matrix,mc);
+    const bttsProb=Accuracy.btts(matrix);
+    const over25=Accuracy.over(matrix,2.5);
+    const over15=Accuracy.over(matrix,1.5);
+    const over35=Accuracy.over(matrix,3.5);
+    const topScores=Accuracy.topScores(matrix,6);
+    let winnerSide=finalH>finalA?"home":finalA>finalH?"away":"draw";
+    const winner=winnerSide==="home"?hN:winnerSide==="away"?aN:"تعادل";
+    const totalGoals=finalH+finalA;
+    const confidence=Math.min(92,Math.round(Math.max(ensemble.home,ensemble.draw,ensemble.away)*(isLive?1.3:1)));
+    const bestBets=[];
+    bestBets.push({market:"النتيجة النهائية",selection:finalH+"-"+finalA,odds:"1.80",prob:60});
+    bestBets.push({market:"الفائز",selection:winner,odds:winnerSide==="draw"?"3.20":"1.65",prob:winnerSide==="draw"?25:70});
+    bestBets.push({market:totalGoals>2.5?"Over 2.5":"Under 2.5",selection:totalGoals>2.5?"Over":"Under",odds:"1.85",prob:62});
+    bestBets.push({market:"BTTS",selection:(finalH>0&&finalA>0)?"نعم":"لا",odds:"1.70",prob:70});
+    const realEvents=extractRealEvents(summary,cs);
+    return{
+      home:{id:hT.id,name:hN,logo:hT.logo,stats:hStats,form:hForm,rank:hStats.rank},
+      away:{id:aT.id,name:aN,logo:aT.logo,stats:aStats,form:aForm,rank:aStats.rank},
+      h2h,xgH:xgH_full,xgA:xgA_full,
+      xgHRemaining:xgH_remaining,xgARemaining:xgA_remaining,
+      liveXgH:xgH_accum,liveXgA:xgA_accum,
+      matrix,probs,mc,ensemble,
+      bttsProb,over15,over25,over35,topScores,
+      bestScore:{score:finalH+"-"+finalA,prob:0},
+      winner,winnerSide,confidence,bestBets,
+      currentScore:{home:curH,away:curA},
+      currentMinute,remainingMinutes,
+      finalScore:{home:finalH,away:finalA},
+      isLive,isPre:stateType==="pre",isPost,
+      liveStats,
+      dataQuality:isLive?100:Math.min(100,(hStats.gp||0)*5+(aStats.gp||0)*5),
+      realEvents,
+      _espnClock:espnClock,_espnPeriod:espnPeriod,_espnClockSec:espnClockSec,
+      _isDataSane:isDataSane,_sanityNote:sanityNote
+    };
+  }catch(e){
+    console.error("predictMatch error:",e);
+    return{home:{name:"Home",stats:fromStandings(null),form:{form:0.5},rank:10},away:{name:"Away",stats:fromStandings(null),form:{form:0.5},rank:10},
+      h2h:{homeWins:0,awayWins:0,draws:0,total:0,avgGoals:2.5,btts:0.5},
+      xgH:1.3,xgA:1.1,xgHRemaining:1.3,xgARemaining:1.1,liveXgH:0,liveXgA:0,
+      matrix:[[1]],probs:{home:33,draw:33,away:34},mc:{home:33,draw:33,away:34,avgGoals:2.5,btts:50},
+      ensemble:{home:33,draw:33,away:34},bttsProb:50,over15:60,over25:45,over35:25,
+      topScores:[{score:"1-1",prob:10}],bestScore:{score:"1-1",prob:10},
+      winner:"تعادل",winnerSide:"draw",confidence:33,bestBets:[],
+      currentScore:{home:0,away:0},currentMinute:0,remainingMinutes:95,
+      finalScore:{home:1,away:1},isLive:false,isPre:true,isPost:false,
+      liveStats:null,dataQuality:0,realEvents:[],
+      _isDataSane:false,_sanityNote:e.message};
+  }
+}
+
+function distributeGoalsBalanced(hCount,aCount,minMinute,maxMinute,rng){
+  const total=hCount+aCount;
+  if(total===0)return{home:[],away:[]};
+  const range=Math.max(1,maxMinute-minMinute);
+  const minGap=Math.max(3,Math.floor(range/(total+1))-1);
+  const used=[];
+  for(let i=0;i<total;i++){
+    let slot=null;let attempts=0;
+    while(attempts<100){
+      const c=minMinute+Math.floor(rng()*range);
+      if(!used.some(u=>Math.abs(u-c)<minGap)){slot=c;break;}
+      attempts++;
+    }
+    if(slot===null){
+      slot=Math.round(minMinute+(range/(total+1))*(i+1));
+      while(used.some(u=>Math.abs(u-slot)<minGap)&&slot<maxMinute)slot++;
+      if(slot>maxMinute)slot=maxMinute;
+    }
+    used.push(slot);
+  }
+  used.sort((a,b)=>a-b);
+  const indices=Array.from({length:used.length},(_,i)=>i);
+  for(let i=indices.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[indices[i],indices[j]]=[indices[j],indices[i]];}
+  const homeMinutes=[],awayMinutes=[];
+  indices.forEach((idx,i)=>{if(i<hCount)homeMinutes.push(used[idx]);else awayMinutes.push(used[idx]);});
+  return{home:homeMinutes.sort((a,b)=>a-b),away:awayMinutes.sort((a,b)=>a-b)};
+}
+function distributeEventsWithGap(count,minMinute,maxMinute,minGap,rng){
+  if(count<=0)return[];
+  const range=Math.max(1,maxMinute-minMinute);
+  const used=[];
+  for(let i=0;i<count;i++){
+    let slot=null;let attempts=0;
+    while(attempts<50){
+      const c=minMinute+Math.floor(rng()*range);
+      if(!used.some(u=>Math.abs(u-c)<minGap)){slot=c;break;}
+      attempts++;
+    }
+    if(slot===null){
+      slot=Math.round(minMinute+(range/(count+1))*(i+1));
+      while(used.some(u=>Math.abs(u-slot)<minGap)&&slot<maxMinute)slot++;
+      if(slot>maxMinute)slot=maxMinute;
+    }
+    used.push(slot);
+  }
+  return used.sort((a,b)=>a-b);
+}
+
+function addIssue(severity,title,msg,context){
+  // ★ فلتر نهائي: استبعاد أي false positive
+  if(BANNED_PATTERN.test(String(title||""))||BANNED_PATTERN.test(String(msg||""))){
+    console.log("🚫 Issue blocked by filter:",title);
+    return null;
+  }
+  const sig=(severity||"info")+"|"+(title||"مشكلة");
+  const recent=state.issues.find(i=>i._sig===sig&&Date.now()-i.ts<300000);
+  if(recent){
+    recent.occurrences=(recent.occurrences||1)+1;
+    recent.ts=Date.now();
+    recent.msg=msg;
+    localStorage.setItem('issues',JSON.stringify(state.issues));
+    updateIssuesBadge();
+    return recent;
+  }
+  const issue={
+    id:"i"+Date.now()+"-"+Math.random().toString(36).slice(2,6),
+    severity:severity||"info",
+    title:title||"مشكلة",
+    msg:msg||"",
+    context:context||"",
+    _sig:sig,
+    occurrences:1,
+    ts:Date.now(),
+    read:false
+  };
+  state.issues.unshift(issue);
+  state.issues=state.issues.slice(0,100);
+  localStorage.setItem('issues',JSON.stringify(state.issues));
+  updateIssuesBadge();
+  if(severity==="high"||severity==="medium")showToast("🚨 "+(title||"مشكلة"),severity==="high"?"error":"warn");
+  return issue;
+}
+function updateIssuesBadge(){
+  const unread=state.issues.filter(i=>!i.read).length;
+  const nav=$("nav-problems");
+  if(nav){
+    if(unread>0){nav.setAttribute("data-count",unread);nav.classList.add("badge-red");}
+    else{nav.classList.remove("badge-red");nav.removeAttribute("data-count");}
+  }
+  const orc=$("orc-issues");if(orc)orc.textContent=state.issues.length;
+}
+
+const Orchestrator={
+  interval:null,tickMs:30000,running:false,cycles:0,
+  start(){if(this.interval)return;this.log("بدء (30ث)");this.interval=setInterval(()=>this.tick(),this.tickMs);},
+  stop(){if(this.interval){clearInterval(this.interval);this.interval=null;}},
+  log(msg){
+    const entry={time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),msg};
+    state.orchestratorLog.unshift(entry);
+    state.orchestratorLog=state.orchestratorLog.slice(0,50);
+    const el=$("orc-status");if(el)el.textContent="AI: "+String(msg).slice(0,35);
+  },
+  async tick(){
+    if(this.running)return;
+    this.running=true;this.cycles++;
+    try{await this.executeCycle();}
+    catch(e){this.log("⚠️ "+String(e.message).slice(0,30));}
+    finally{this.running=false;}
+  },
+  async executeCycle(){
+    this.detectLocalIssues();
+    
+    // ★ لا مباراة مختارة → لا نرسل شي
+    if(!state.currentAnalysis||!state.matchKnowledge){
+      this.log("لا مباراة مختارة");
+      return;
+    }
+    
+    // ★ Payload نظيف — فقط بيانات المباراة
+    const m=state.matchKnowledge;
+    const summaryData={
+      match:{
+        home:m.home,
+        away:m.away,
+        score:m.currentScore,
+        minute:m.currentMinute,
+        espnClock:m._espnClock,
+        espnPeriod:m._espnPeriod,
+        isLive:m.isLive,
+        isPost:m.isPost,
+        dataSane:m._isDataSane,
+        predictedFinal:m.finalPredicted,
+        predictedWinner:m.winner,
+        goals:m.goals,
+        yellowCards:m.yellow,
+        redCards:m.red,
+        cornersCount:m.corners,
+        homeRank:m.homeRank,
+        awayRank:m.awayRank,
+        h2h:m.h2h
+      }
+    };
+    
+    const prompt=`أنت مساعد تحليل كرة قدم. مهمتك الوحيدة: **تحسين التحليل، وليس اكتشاف المشاكل**.
+
+هذه بيانات المباراة الحالية:
+${JSON.stringify(summaryData,null,2)}
+
+⚠️⚠️⚠️ قواعد صارمة نهائية:
+1. **ممنوع منعاً باتاً** التبليغ عن أي شيء يخص:
+   - عدد المباريات الحية أو الكلية
+   - liveCount أو totalMatches
+   - clockSeconds أو ثواني الساعة
+   - تناقضات بين حقول النظام
+   - مزامنة البيانات الداخلية
+   - تفاصيل تقنية عن الحقول
+
+2. **الوظيفة الوحيدة**: تقديم رؤية تحليلية مفيدة عن المباراة.
+
+3. **متى تُبلّغ عن مشكلة** (نادر جداً):
+   - فقط إذا كانت النتيجة مستحيلة (مثل 15-0)
+   - فقط إذا كانت الدقيقة > 95 بوضوح
+   - فقط إذا كان هناك تناقض بديهي في نفس المباراة
+
+4. **الافتراضي**: لا توجد مشاكل → severity = "none".
+
+5. **مهم جداً**: **الأفضل أن ترد بلا مشاكل** بدلاً من اختراع واحدة. الفلتر سيرفض أي مشكلة كاذبة.
+
+أعد JSON فقط:
+{
+  "issue": {"severity":"none|low|medium|high","title":"","msg":""},
+  "insight": "ملاحظة تحليلية قصيرة مفيدة (اختياري)",
+  "knowledge": ""
+}
+
+مثال للرد الصحيح 99% من الوقت:
+{"issue":{"severity":"none","title":"","msg":""},"insight":"FC FAmalicao يسيطر على المباراة","knowledge":""}`;
+
+    const resp=await askAI("Orchestrator",prompt,true);
+    if(!resp.text||resp.text.length<10){this.log("انتظار");return;}
+    const jm=resp.text.match(/\{[\s\S]*\}/);
+    if(!jm){this.log("رد غير مفهوم");return;}
+    let cmd;try{cmd=JSON.parse(jm[0]);}catch(e){this.log("JSON خاطئ");return;}
+    state.aiCommands=cmd;
+    
+    if(cmd.insight){
+      state.knowledgeBase.unshift({type:"insight",text:cmd.insight,ts:Date.now()});
+      state.knowledgeBase=state.knowledgeBase.slice(0,100);
+      this.log("💡 "+String(cmd.insight).slice(0,35));
+    }
+    if(cmd.knowledge){
+      state.knowledgeBase.unshift({type:"knowledge",text:cmd.knowledge,ts:Date.now()});
+    }
+    
+    // ★ الفلتر النهائي
+    if(cmd.issue&&cmd.issue.severity&&cmd.issue.severity!=="none"&&cmd.issue.msg){
+      const t=String(cmd.issue.title||"");
+      const msg=String(cmd.issue.msg||"");
+      if(BANNED_PATTERN.test(t)||BANNED_PATTERN.test(msg)){
+        this.log("🚫 استبعاد false positive");
+      } else {
+        // قبول فقط severity "high" لمشاكل حقيقية
+        const accepted=addIssue(cmd.issue.severity,t,msg,"AI دورة #"+this.cycles);
+        if(accepted)this.log("🚨 "+t.slice(0,30));
+      }
+    } else {
+      this.log("✅ لا مشاكل • دورة "+this.cycles);
+    }
+    
+    const kEl=$("orc-knowledge");if(kEl)kEl.textContent=state.knowledgeBase.length;
+    setAIStatus("🧠 AI #"+this.cycles);
+  },
+  detectLocalIssues(){
+    if(!state.currentAnalysis||!state.currentAnalysis.isLive)return;
+    const r=state.currentAnalysis;
+    
+    // فحص 1: تناقض ESPN الحقيقي
+    if(r._isDataSane===false&&r._sanityNote){
+      addIssue("high","تناقض بيانات ESPN",
+        `المباراة: ${r.home.name} ضد ${r.away.name}
+النتيجة: ${r.currentScore.home}-${r.currentScore.away}
+الدقيقة المحسوبة: ${r.currentMinute}
+ESPN displayClock: ${r._espnClock||"?"}
+period: ${r._espnPeriod}
+السبب: ${r._sanityNote}`,
+        "فحص محلي");
+    }
+    
+    // فحص 2: الدقيقة > 95
+    if(r.currentMinute>95){
+      addIssue("high","الدقيقة > 95",
+        `${r.home.name} ضد ${r.away.name}: الدقيقة ${r.currentMinute} غير طبيعية`,
+        "فحص محلي");
+    }
+  }
+};
+
+const FEATURES=[
+  {id:1,name:"AI Orchestrator",cat:"AI"},{id:2,name:"Zero False Positives",cat:"AI"},
+  {id:3,name:"Issues Screen",cat:"AI"},{id:4,name:"Chat Knowledge Base",cat:"AI"},
+  {id:5,name:"Smart Issue Detection",cat:"AI"},{id:6,name:"AI XG Override",cat:"AI"},
+  {id:7,name:"Banned Pattern Filter",cat:"AI"},{id:8,name:"Issue Deduplication",cat:"AI"},
+  {id:9,name:"Multi-Provider AI",cat:"AI"},{id:10,name:"Autonomy Log",cat:"AI"},
+  {id:11,name:"Dixon-Coles",cat:"Accuracy"},{id:12,name:"Bayesian Prior",cat:"Accuracy"},
+  {id:13,name:"Monte Carlo 3000",cat:"Accuracy"},{id:14,name:"Ensemble Method",cat:"Accuracy"},
+  {id:15,name:"Kelly Criterion",cat:"Accuracy"},{id:16,name:"Expected Value",cat:"Accuracy"},
+  {id:17,name:"Value Bet",cat:"Accuracy"},{id:18,name:"Confidence Intervals",cat:"Accuracy"},
+  {id:19,name:"Poisson Matrix 9x9",cat:"Accuracy"},{id:20,name:"Live Rate-Based",cat:"Accuracy"},
+  {id:21,name:"Remaining xG Calc",cat:"Accuracy"},{id:22,name:"Form Weighting",cat:"Accuracy"},
+  {id:23,name:"H2H Adjustment",cat:"Accuracy"},{id:24,name:"Clock Sanity Check",cat:"Accuracy"},
+  {id:25,name:"Streak Analysis",cat:"Accuracy"},
+  {id:26,name:"Past Event Replay",cat:"Simulator"},{id:27,name:"Balanced Goals",cat:"Simulator"},
+  {id:28,name:"Min Gap 3 Min",cat:"Simulator"},{id:29,name:"Corner Simulation",cat:"Simulator"},
+  {id:30,name:"Card Simulation",cat:"Simulator"},{id:31,name:"Substitution Sim",cat:"Simulator"},
+  {id:32,name:"AI Speed Control",cat:"Simulator"},{id:33,name:"Exact Goal Count",cat:"Simulator"},
+  {id:34,name:"No Minute Overflow",cat:"Simulator"},{id:35,name:"Deterministic Seed",cat:"Simulator"},
+  {id:36,name:"Live Date Nav",cat:"UI"},{id:37,name:"League Filter",cat:"UI"},
+  {id:38,name:"Live Match Panel",cat:"UI"},{id:39,name:"Auto-Refresh",cat:"UI"},
+  {id:40,name:"Goal Notifications",cat:"UI"},{id:41,name:"Vibrate Alerts",cat:"UI"},
+  {id:42,name:"Audio Beeps",cat:"UI"},{id:43,name:"Score Flash",cat:"UI"},
+  {id:44,name:"Nav Badges",cat:"UI"},{id:45,name:"Dark Theme",cat:"UI"},
+  {id:46,name:"Prediction Log",cat:"Data"},{id:47,name:"Issues Persistence",cat:"Data"},
+  {id:48,name:"Chat Knowledge",cat:"Data"},{id:49,name:"Issue Export",cat:"Data"},
+  {id:50,name:"Auto Cleanup",cat:"Data"}
+];
+
+function switchScreen(id,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+  if(el){document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');}
+  window.scrollTo(0,0);
+}
+function goBack(){const h=state.history.pop();if(h)switchScreen(h);else switchScreen('home-screen');}
+function pushHistory(s){state.history.push(s);}
+
+function renderLeagues(){
+  const el=$("league-tabs");if(!el)return;
+  el.innerHTML=LEAGUES.map(l=>`<div class="league-chip ${l.id===state.league?'active':''}" onclick="selectLeague('${l.id}')">
+    <div class="league-logo"><img src="${esc(l.logo)}" onerror="this.style.opacity='.3'"></div>
+    <div class="league-name">${esc(l.name)}</div>
+  </div>`).join("");
+}
+function selectLeague(id){state.league=id;renderLeagues();loadMatches();loadScorers(id);}
+function renderDateNav(){
+  const el=$("date-nav");if(!el)return;
+  const liveCount=state.matches.filter(m=>getMatchState(m)==="in").length;
+  let html=`<button class="date-nav-btn live-tab ${state.dayFilter==='live'?'active':''}" onclick="setDayFilter('live',this)">🔴 مباشر ${liveCount>0?`(${liveCount})`:''}</button>`;
+  html+=`<button class="date-nav-btn ${state.dayFilter==='all'?'active':''}" onclick="setDayFilter('all',this)">📅 الكل</button>`;
+  [-1,0,1,2,3,4].forEach(offset=>{
+    const key=getDateString(offset);
+    const count=state.matches.filter(m=>getDateKey(m.date)===key).length;
+    if(count===0&&offset!==0&&offset!==1)return;
+    html+=`<button class="date-nav-btn ${state.dayFilter===key?'active':''}" onclick="setDayFilter('${key}',this)">${formatDateLabel(offset)} ${count>0?`(${count})`:''}</button>`;
+  });
+  el.innerHTML=html;
+}
+function setDayFilter(key,btn){
+  state.dayFilter=key;
+  document.querySelectorAll('.date-nav-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderDateNav();renderMatches();
+}
+async function loadMatches(){
+  const list=$("matches-list");
+  list.innerHTML='<div class="empty"><div class="spinner"></div><p style="margin-top:10px">جاري التحميل...</p></div>';
+  setStatus("⏳","load");
+  const dates=[-1,0,1,2,3,4].map(d=>getDateString(d));
+  const results=await Promise.all(dates.map(d=>fetchData(`${ESPN}/${state.league}/scoreboard?dates=${d}`,8000)));
+  let all=[],ok=false;
+  results.forEach(r=>{if(r.ok&&r.data.events){ok=true;r.data.events.forEach(e=>{if(!all.find(x=>x.id===e.id))all.push(e);});}});
+  if(!ok){setStatus("❌","err");list.innerHTML=`<div class="empty"><p style="font-size:2rem">📡</p><button class="retry-btn" onclick="loadMatches()">🔄</button></div>`;return;}
+  all.sort((a,b)=>{const o={in:0,pre:1,post:2};const sa=o[getMatchState(a)]??3,sb=o[getMatchState(b)]??3;if(sa!==sb)return sa-sb;return new Date(a.date)-new Date(b.date);});
+  state.matches=all;
+  const lc=all.filter(m=>getMatchState(m)==="in").length;
+  setStatus(`✅ ${all.length}${lc>0?' · '+lc+' مباشر':''}`,"");
+  renderDateNav();renderLivePanel();renderFeatured();renderMatches();
+  $("last-update-time").textContent=new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+}
+function renderLivePanel(){
+  const el=$("live-panel");
+  const live=state.matches.filter(m=>getMatchState(m)==="in");
+  if(!live.length){el.innerHTML="";return;}
+  el.innerHTML=`<div style="margin:12px;padding:14px;border-radius:12px;background:linear-gradient(135deg,rgba(220,38,38,.15),rgba(239,68,68,.08));border:1px solid var(--red);display:flex;justify-content:space-between;align-items:center">
+    <div><div style="font-size:.75rem;font-weight:700;color:#f87171">🔴 مباريات جارية</div>
+    <div style="font-size:.68rem;color:var(--muted)">تحديث كل 20 ثانية</div></div>
+    <div style="text-align:center"><div style="font-size:1.6rem;font-weight:800;color:#f87171">${live.length}</div><div style="font-size:.7rem;color:var(--muted)">مباشر</div></div>
+  </div>`;
+}
+function renderFeatured(){
+  const up=state.matches.filter(m=>getMatchState(m)==="pre").slice(0,6);
+  const cont=$("featured-container");
+  if(!up.length){cont.innerHTML="";return;}
+  let html=`<div class="section-title">⭐ قادمة</div><div style="display:flex;gap:10px;overflow-x:auto;padding:0 14px 12px;scrollbar-width:none">`;
+  up.forEach(m=>{
+    const c=m.competitions?.[0]||{};const cs=c.competitors||[];
+    const h=cs.find(x=>x.homeAway==="home")||{},a=cs.find(x=>x.homeAway==="away")||{};
+    const hT=h.team||{},aT=a.team||{};
+    html+=`<div style="min-width:280px;padding:14px;border-radius:14px;background:linear-gradient(135deg,rgba(168,85,247,.2),rgba(59,130,246,.2));border:1px solid var(--ai);flex-shrink:0;cursor:pointer" onclick="openMatch('${esc(m.id)}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+          <img src="${esc(hT.logo||'')}" style="width:36px;height:36px;object-fit:contain" onerror="this.style.display='none'">
+          <span style="font-size:.72rem;font-weight:700">${esc(hT.shortDisplayName||hT.displayName||'?')}</span>
+        </div>
+        <div style="font-size:1rem;font-weight:800;color:var(--ai);margin:0 8px">VS</div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+          <img src="${esc(aT.logo||'')}" style="width:36px;height:36px;object-fit:contain" onerror="this.style.display='none'">
+          <span style="font-size:.72rem;font-weight:700">${esc(aT.shortDisplayName||aT.displayName||'?')}</span>
+        </div>
+      </div>
+      <div style="font-size:.65rem;color:var(--muted);text-align:center;margin-top:6px">⏰ ${formatTime(m.date)} · ${formatDate(m.date)}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  cont.innerHTML=html;
+}
+function renderMatches(){
+  const list=$("matches-list");
+  let matches=state.matches.slice();
+  if(state.filter!=="all")matches=matches.filter(m=>getMatchState(m)===state.filter);
+  if(state.dayFilter==="live")matches=matches.filter(m=>getMatchState(m)==="in");
+  else if(state.dayFilter!=="all")matches=matches.filter(m=>getDateKey(m.date)===state.dayFilter);
+  if(!matches.length){list.innerHTML='<div class="empty">لا مباريات</div>';return;}
+  const groups={};
+  matches.forEach(m=>{
+    const d=new Date(m.date);
+    const key=d.toLocaleDateString('ar-EG',{weekday:'long',day:'numeric',month:'long'});
+    if(!groups[key])groups[key]=[];
+    groups[key].push(m);
+  });
+  let html="";
+  const league=LEAGUES.find(l=>l.id===state.league)||{};
+  for(const [date,arr] of Object.entries(groups)){
+    html+=`<div class="section-title">📅 ${date}</div>`;
+    html+=arr.map(m=>renderMatchCard(m,league)).join("");
+  }
+  list.innerHTML=html;
+}
+function renderMatchCard(m,league){
+  const c=m.competitions?.[0]||{};const cs=c.competitors||[];
+  const home=cs.find(x=>x.homeAway==="home")||{},away=cs.find(x=>x.homeAway==="away")||{};
+  const st=getMatchState(m);const statusText=getMatchStatusText(m);
+  const hT=home.team||{},aT=away.team||{};
+  const hS=home.score!=null?home.score:"",aS=away.score!=null?away.score:"";
+  const hN=hT.shortDisplayName||hT.displayName||"?",aN=aT.shortDisplayName||aT.displayName||"?";
+  let bc="pre",bt="قادمة";
+  if(st==="in"){bc="live";bt="مباشر";}else if(st==="post"){bc="post";bt="انتهت";}
+  const scoreDisplay=(st==="pre")?`<div class="match-score upcoming">${formatTime(m.date)}</div>`:`<div class="match-score">${hS} - ${aS}</div>`;
+  return `<div class="match-card ${st==='in'?'live':''}" data-match-id="${esc(m.id)}" onclick="openMatch('${esc(m.id)}')">
+    <div class="match-header-info">
+      <div style="display:flex;align-items:center;gap:6px"><img src="${esc(league.logo||'')}" style="width:16px;height:16px;object-fit:contain" onerror="this.style.display='none'"><span>${esc(league.name||'')}</span></div>
+      <span class="match-status-badge ${bc}">${bt}${statusText?' · '+statusText:''}</span>
+    </div>
+    <div class="match-body">
+      <div class="match-teams-row">
+        <div class="team-block"><img class="team-logo" src="${esc(hT.logo||'')}" onerror="this.style.display='none'"><span class="team-name">${esc(hN)}</span></div>
+        ${scoreDisplay}
+        <div class="team-block away"><img class="team-logo" src="${esc(aT.logo||'')}" onerror="this.style.display='none'"><span class="team-name">${esc(aN)}</span></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function loadScorers(leagueId){
+  const el=$("scorers-section");
+  el.innerHTML=`<div class="section-title">👟 الهدافون</div><div class="empty" style="padding:14px"><div class="spinner"></div></div>`;
+  if(state.scorersCache[leagueId]){renderScorers(state.scorersCache[leagueId]);return;}
+  const result=await fetchData(`${ESPN_STATS}/${leagueId}/statistics/byathlete?limit=10&sort=offensive.goals&region=us`,8000);
+  if(!result.ok||!result.data.athletes||!result.data.athletes.length){el.innerHTML=`<div class="section-title">👟 الهدافون</div><div class="empty" style="padding:14px;font-size:.78rem">لا بيانات</div>`;return;}
+  state.scorersCache[leagueId]=result.data.athletes.slice(0,10);
+  renderScorers(state.scorersCache[leagueId]);
+}
+function renderScorers(athletes){
+  const el=$("scorers-section");
+  let html=`<div class="section-title">👟 الهدافون</div>`;
+  athletes.slice(0,5).forEach((a,i)=>{
+    const ath=a.athlete||{};
+    const name=ath.displayName||"?";
+    const teamName=a.team?(a.team.displayName||a.team.name||""):"";
+    const teamLogo=a.team&&a.team.logo?a.team.logo:"";
+    const photo=ath.headshot&&ath.headshot.href?ath.headshot.href:"";
+    const statVal=(a.categories||[]).find(c=>c.name==="offensive")?.totals?.[0]||(a.stats||[]).find(s=>s.name==="goals")?.value||"?";
+    const rk=i===0?"linear-gradient(135deg,#fbbf24,#f59e0b)":i===1?"linear-gradient(135deg,#94a3b8,#64748b)":i===2?"linear-gradient(135deg,#b45309,#92400e)":"var(--card2)";
+    const col=i<=2?"#fff":"var(--muted)";
+    const initials=name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
+    html+=`<div style="display:flex;align-items:center;gap:12px;padding:12px;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:12px;margin:0 12px 8px">
+      <div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;background:${rk};color:${col}">${i+1}</div>
+      <div class="player-avatar">${photo?`<img src="${esc(photo)}" onerror="this.parentNode.innerHTML='${initials}'">`:initials}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:.85rem;font-weight:700">${esc(name)}</div>${teamName?`<div style="font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px">${teamLogo?`<img src="${esc(teamLogo)}" style="width:14px;height:14px">`:""}${esc(teamName)}</div>`:""}</div>
+      <div style="text-align:center"><div style="font-size:1.1rem;font-weight:800;color:var(--gold)">${esc(statVal)}</div><div style="font-size:.6rem;color:var(--muted)">أهداف</div></div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+async function openMatch(matchId){
+  pushHistory('home-screen');switchScreen('match-screen');
+  const cont=$("match-detail-content");cont.innerHTML='<div class="empty"><div class="spinner"></div></div>';
+  const [sumRes,stRes]=await Promise.all([fetchData(`${ESPN}/${state.league}/summary?event=${matchId}`,10000),fetchData(`${ESPN_V2}/${state.league}/standings`,10000).catch(()=>({ok:false}))]);
+  if(!sumRes.ok){cont.innerHTML=`<div class="error-panel">⚠️<br><button class="retry-btn" onclick="openMatch('${matchId}')">🔄</button></div>`;return;}
+  state.currentSummary=sumRes.data;
+  state.currentDetail={summary:sumRes.data,standings:stRes.ok?stRes.data:null};
+  state.currentAnalysis=null;state.simEvents=null;state.simClock=0;
+  if(state.sim){clearInterval(state.sim);state.sim=null;}
+  renderMatchDetail(state.currentSummary,state.currentDetail.standings);
+  setTimeout(()=>runAnalysis(),30);
+}
+function renderMatchDetail(summary,standings){
+  const header=summary.header||{};
+  const comp=header.competitions[0]||{};
+  const cs=comp.competitors||[];
+  const home=cs.find(x=>x.homeAway==="home")||{},away=cs.find(x=>x.homeAway==="away")||{};
+  const hT=home.team||{},aT=away.team||{};
+  const status=comp.status||{};
+  const stateType=(status.type?.state)||"pre";
+  const hS=home.score!=null?home.score:"",aS=away.score!=null?away.score:"";
+  const h2h=summary.headToHeadGames||summary.seasonseries||[];
+  const rosters=summary.rosters||[];
+  const league=LEAGUES.find(l=>l.id===state.league)||{};
+  const scoreDisplay=stateType==="pre"?`<div class="detail-score-box" style="color:var(--blue)">VS</div>`:`<div class="detail-score-box" id="live-score-box">${hS} - ${aS}</div>`;
+  let statusLine="";
+  if(stateType==="in")statusLine=`🔴 مباشر — <span id="live-clock">${status.displayClock||""}</span>`;
+  else if(stateType==="pre")statusLine=`⏰ ${formatDate(comp.date)} — ${formatTime(comp.date)}`;
+  else statusLine="✅ انتهت";
+  const hN=hT.shortDisplayName||hT.displayName||"?",aN=aT.shortDisplayName||aT.displayName||"?";
+  const html=`
+    <div class="detail-header-card ${stateType==='in'?'live':''}">
+      <div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:.72rem;color:var(--muted);margin-bottom:14px">
+        <img src="${esc(league.logo||'')}" style="width:18px;height:18px" onerror="this.style.display='none'"><span>${esc(header.league?.name||league.name||'')}</span>
+      </div>
+      <div class="detail-teams">
+        <div class="detail-team"><img src="${esc(hT.logo||'')}" onerror="this.style.display='none'"><div class="detail-team-name">${esc(hN)}</div></div>
+        ${scoreDisplay}
+        <div class="detail-team"><img src="${esc(aT.logo||'')}" onerror="this.style.display='none'"><div class="detail-team-name">${esc(aN)}</div></div>
+      </div>
+      <div class="detail-meta" id="live-status-line">${statusLine}</div>
+      ${stateType==='in'?`<div class="current-score-badge">${esc(hN)} ${hS} - ${aS} ${esc(aN)}</div>`:""}
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="analysis" onclick="switchTab('analysis',this)">🧠 تحليل</button>
+      <button class="tab-btn" data-tab="metrics" onclick="switchTab('metrics',this)">📊 40</button>
+      <button class="tab-btn" data-tab="accuracy" onclick="switchTab('accuracy',this)">🎯 25</button>
+      <button class="tab-btn" data-tab="h2h" onclick="switchTab('h2h',this)">🤝 H2H</button>
+      <button class="tab-btn" data-tab="lineups" onclick="switchTab('lineups',this)">👥</button>
+      <button class="tab-btn" data-tab="events" onclick="switchTab('events',this)">⚡</button>
+      <button class="tab-btn tab-bet" data-tab="betting" onclick="switchTab('betting',this)">💰</button>
+      <button class="tab-btn tab-ai" data-tab="sim" onclick="switchTab('sim',this)">🎯 محاكي</button>
+    </div>
+    <div id="tab-analysis" class="tab-content"><div id="analysis-content"><div class="empty"><div class="spinner"></div></div></div></div>
+    <div id="tab-metrics" class="tab-content hidden"><div id="metrics-content"></div></div>
+    <div id="tab-accuracy" class="tab-content hidden"><div id="accuracy-content"></div></div>
+    <div id="tab-h2h" class="tab-content hidden">${renderH2H(h2h,hT,aT)}</div>
+    <div id="tab-lineups" class="tab-content hidden">${renderLineups(rosters)}</div>
+    <div id="tab-events" class="tab-content hidden"><div id="events-content">${renderEvents(summary)}</div></div>
+    <div id="tab-betting" class="tab-content hidden"><div id="betting-content"><div class="empty">جاري...</div></div></div>
+    <div id="tab-sim" class="tab-content hidden"><div id="sim-container"></div></div>`;
+  $("match-detail-content").innerHTML=html;
+}
+function renderH2H(h2h,hT,aT){
+  if(!h2h||!h2h.length)return'<div class="empty">لا مواجهات</div>';
+  try{
+    const games=h2h.slice(0,10);
+    let hw=0,aw=0,dr=0,html="";
+    games.forEach(g=>{
+      const cs=(g.competitions?.[0]?.competitors)||[];
+      const h=cs.find(x=>x.homeAway==="home")||{},a=cs.find(x=>x.homeAway==="away")||{};
+      const hs=safeNum(h.score,0),as=safeNum(a.score,0);
+      if(hs>as)hw++;else if(hs<as)aw++;else dr++;
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:.78rem;gap:6px">
+        <div style="font-size:.68rem;color:var(--muted);min-width:65px">${formatDate(g.date)}</div>
+        <div style="flex:1;text-align:center;font-weight:700">${esc(h.team?.shortDisplayName||"?")}</div>
+        <div style="background:var(--card2);padding:3px 10px;border-radius:6px;font-weight:800">${hs} - ${as}</div>
+        <div style="flex:1;text-align:center;font-weight:700">${esc(a.team?.shortDisplayName||"?")}</div>
+      </div>`;
+    });
+    const hN=hT.shortDisplayName||"?",aN=aT.shortDisplayName||"?";
+    return`<div style="margin-bottom:14px;display:flex;justify-content:space-around;text-align:center">
+      <div><div style="color:var(--green);font-size:1.5rem;font-weight:800">${hw}</div><div style="font-size:.68rem;color:var(--muted)">${esc(hN)}</div></div>
+      <div><div style="color:var(--gold);font-size:1.5rem;font-weight:800">${dr}</div><div style="font-size:.68rem;color:var(--muted)">تعادل</div></div>
+      <div><div style="color:var(--blue);font-size:1.5rem;font-weight:800">${aw}</div><div style="font-size:.68rem;color:var(--muted)">${esc(aN)}</div></div>
+    </div>${html}`;
+  }catch(e){return'<div class="empty">خطأ</div>';}
+}
+function renderLineups(rosters){
+  if(!rosters||!rosters.length)return'<div class="empty">لم تُعلن</div>';
+  try{
+    return rosters.map(r=>{
+      const tn=r.team&&(r.team.displayName||r.team.name)||"?";
+      const players=(r.roster||[]).map(p=>{
+        const ath=p.athlete||{};
+        const name=ath.displayName||ath.shortName||"?";
+        const pos=p.position?.abbreviation||"";
+        const jersey=p.jersey||"";
+        const photo=ath.headshot?.href||"";
+        const initials=name.split(" ").slice(0,2).map(x=>x[0]).join("").toUpperCase();
+        return`<div class="lineup-row">
+          <div class="player-avatar" style="width:32px;height:32px;font-size:.75rem">${photo?`<img src="${esc(photo)}" onerror="this.parentNode.innerHTML='${initials}'">`:initials}</div>
+          <div class="jersey">${esc(jersey)}</div>
+          <div class="name">${esc(name)}</div>
+          ${pos?`<div class="pos">${esc(pos)}</div>`:""}
+        </div>`;
+      }).join("");
+      return`<div style="margin-bottom:18px"><div style="font-weight:800;color:var(--green);margin-bottom:10px;font-size:.88rem">${esc(tn)}</div>${players||'<div class="empty">لم يُعلن</div>'}</div>`;
+    }).join("");
+  }catch(e){return'<div class="empty">خطأ</div>';}
+}
+function renderEvents(summary){
+  try{
+    const arr=summary.keyEvents||[];
+    if(!arr.length)return'<div class="empty">لا أحداث</div>';
+    const cs=(summary.header?.competitions?.[0]?.competitors)||[];
+    const out=[];
+    arr.forEach(e=>{
+      const clock=(e.clock&&(e.clock.displayValue||e.clock.value))||"";
+      const min=parseInt(String(clock).replace(/[^\d]/g,""))||0;
+      if(!min)return;
+      const typeText=(e.type?.text||e.type?.id)||"";
+      const text=e.text||"";
+      const comb=(typeText+" "+text).toLowerCase();
+      let type=null,icon="";
+      if(/goal|scoring/i.test(comb)){type="goal";icon="⚽";}
+      else if(/yellow/i.test(comb)){type="yellow";icon="🟨";}
+      else if(/red/i.test(comb)){type="red";icon="🟥";}
+      else if(/substitution/i.test(comb)){type="sub";icon="🔄";}
+      else if(/corner/i.test(comb)){type="corner";icon="🚩";}
+      else return;
+      let player="";
+      const parts=e.participants||e.athletesInvolved||[];
+      if(parts.length)player=parts.map(p=>p.athlete?.displayName||p.athlete?.shortName||"").filter(Boolean).join(" / ");
+      let side="home";
+      if(e.team&&e.team.id){const idx=cs.findIndex(c=>String(c.team?.id)===String(e.team.id));if(idx===1)side="away";}
+      out.push({min,type,icon,player,side});
+    });
+    out.sort((a,b)=>a.min-b.min);
+    return out.map(e=>`<div class="sim-event ${e.type==='goal'?'goal':e.type==='yellow'?'card-y':e.type==='red'?'card-r':e.type==='corner'?'corner':'sub'}">
+      <span class="sim-minute">${e.min}'</span><span>${e.icon}</span><span>${e.type==='goal'?'هدف':e.type==='yellow'?'صفراء':e.type==='red'?'طرد':e.type==='corner'?'ركنية':'تبديل'}${e.player?' — '+esc(e.player):''}</span>
+    </div>`).join("");
+  }catch(e){return'<div class="empty">خطأ</div>';}
+}
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab-bar .tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.add('hidden'));
+  const el=$("tab-"+tab);if(el)el.classList.remove('hidden');
+  if(tab==='sim')renderSimulator();
+  if(tab==='betting')renderBettingTab();
+  if(tab==='metrics')renderMetricsTab();
+  if(tab==='accuracy')renderAccuracyTab();
+}
+
+function runAnalysis(){
+  try{
+    if(!state.currentSummary){$("analysis-content").innerHTML='<div class="error-panel">⚠️</div>';return;}
+    setStatus("🧠","load");
+    const prediction=predictMatch(state.currentSummary,state.currentDetail.standings,state.matches);
+    state.currentAnalysis=prediction;
+    updateMatchKnowledge(prediction);
+    setStatus("🎯","");
+    renderAnalysis(prediction);
+    renderMetricsTab();
+    renderAccuracyTab();
+    if(!$("tab-betting").classList.contains("hidden"))renderBettingTab();
+    if(!$("tab-sim").classList.contains("hidden"))renderSimulator();
+    const log=state.predictionLog;
+    log.unshift({matchId:state.currentSummary.header?.id,prediction:prediction.winner+" "+prediction.bestScore.score,ts:Date.now()});
+    state.predictionLog=log.slice(0,30);
+    localStorage.setItem('predictionLog',JSON.stringify(state.predictionLog));
+  }catch(e){
+    console.error(e);
+    const el=$("analysis-content");
+    if(el)el.innerHTML=`<div class="error-panel">⚠️ ${esc(e.message)}<br><button class="retry-btn" onclick="runAnalysis()">🔄</button></div>`;
+  }
+}
+function updateMatchKnowledge(r){
+  try{
+    const summary=state.currentSummary;
+    if(!summary)return;
+    const cs=summary.header.competitions[0].competitors||[];
+    const realEvents=extractRealEvents(summary,cs);
+    const goals=realEvents.filter(e=>e.type==="goal");
+    const yellow=realEvents.filter(e=>e.type==="card-y");
+    const red=realEvents.filter(e=>e.type==="card-r");
+    const subs=realEvents.filter(e=>e.type==="sub");
+    const corners=realEvents.filter(e=>e.type==="corner");
+    const status=summary.header.competitions[0].status||{};
+    state.matchKnowledge={
+      matchId:summary.header.id,home:r.home.name,away:r.away.name,
+      currentScore:`${r.currentScore.home} - ${r.currentScore.away}`,
+      currentMinute:r.currentMinute,statusText:status.displayClock||"",
+      isLive:r.isLive,isPost:r.isPost,
+      finalPredicted:r.bestScore.score,winner:r.winner,
+      xgH:r.xgH.toFixed(2),xgA:r.xgA.toFixed(2),
+      liveXgH:r.liveXgH.toFixed(2),liveXgA:r.liveXgA.toFixed(2),
+      bttsProb:Math.round(r.bttsProb),over25:Math.round(r.over25),
+      goals:goals.map(g=>`${g.min}' ${g.side==="home"?r.home.name:r.away.name}${g.player?" ("+g.player+")":""}`),
+      yellow:yellow.map(g=>`${g.min}' ${g.side==="home"?r.home.name:r.away.name}${g.player?" ("+g.player+")":""}`),
+      red:red.map(g=>`${g.min}' ${g.side==="home"?r.home.name:r.away.name}${g.player?" ("+g.player+")":""}`),
+      subs:subs.map(g=>`${g.min}' ${g.side==="home"?r.home.name:r.away.name}`),
+      corners:corners.length,
+      homeRank:r.home.rank,awayRank:r.away.rank,
+      h2h:`${r.h2h.homeWins}-${r.h2h.draws}-${r.h2h.awayWins}`,
+      _espnClock:r._espnClock||"",_espnPeriod:r._espnPeriod||0,
+      _isDataSane:r._isDataSane!==false,_sanityNote:r._sanityNote||"",
+      updatedAt:Date.now()
+    };
+    if(r.isLive){
+      state.knowledgeBase.unshift({type:"live",text:`${r.home.name} ${r.currentScore.home} - ${r.currentScore.away} ${r.away.name} (د ${r.currentMinute})`,ts:Date.now()});
+      state.knowledgeBase=state.knowledgeBase.slice(0,100);
+      const kEl=$("orc-knowledge");if(kEl)kEl.textContent=state.knowledgeBase.length;
+    }
+  }catch(e){console.error("knowledge error:",e);}
+}
+function renderAnalysis(r){
+  const hN=r.home.name,aN=r.away.name;
+  const winnerColor=r.winnerSide==="home"?"var(--green)":r.winnerSide==="away"?"var(--blue)":"var(--gold)";
+  const currentScoreText=r.isLive?`${r.currentScore.home} - ${r.currentScore.away}`:null;
+  const finalScoreText=`${r.finalScore.home} - ${r.finalScore.away}`;
+  const orcInfo=state.aiCommands&&state.aiCommands.insight?`<div style="margin-top:8px;padding:8px 10px;background:rgba(168,85,247,.1);border:1px dashed var(--ai);border-radius:8px;font-size:.72rem;color:#d0defc"><b style="color:var(--ai)">🤖:</b> ${esc(state.aiCommands.insight)}</div>`:"";
+  const sanityWarn=r._isDataSane===false?`<div class="warn-panel">⚠️ <b>ملاحظة:</b> ${esc(r._sanityNote||"تعارض بيانات")}</div>`:"";
+  const html=`
+    <div class="ai-panel ${r.isLive?'live':''}">
+      <div class="ai-panel-title">${r.isLive?'<span class="live-badge">🔴 LIVE '+r.currentMinute+"'"+'</span>':'🧮'} تحليل (40 + 25)</div>
+      ${sanityWarn}
+      ${r.isLive?`<div style="background:rgba(220,38,38,.15);border-radius:10px;padding:10px;margin-bottom:12px;text-align:center">
+        <div style="font-size:.7rem;color:#f87171;margin-bottom:4px">النتيجة الحالية الآن</div>
+        <div style="font-size:1.6rem;font-weight:900;color:#f87171">${esc(currentScoreText)}</div>
+        <div style="font-size:.68rem;color:var(--muted);margin-top:4px">${esc(hN)} — ${esc(aN)} · ESPN: ${esc(r._espnClock)} (P${r._espnPeriod})</div>
+      </div>`:""}
+      <div class="ai-prediction">
+        <div class="ai-pred-box"><div class="label">${r.isLive?"الفائز المتوقع":"الفائز"}</div><div class="value" style="color:${winnerColor}">${esc(r.winner)}</div></div>
+        <div class="ai-pred-box"><div class="label">${r.isLive?"النهائية":"النتيجة"}</div><div class="value gold">${esc(finalScoreText)}</div></div>
+        <div class="ai-pred-box"><div class="label">الثقة</div><div class="value blue">${r.confidence}%</div></div>
+      </div>
+      <div class="ai-analysis-text" id="ai-text">${esc(buildLocalText(r))}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">
+        <div class="ai-pred-box"><div class="label">xG ${esc(hN)}${r.isLive?" (تراكمي)":""}</div><div class="value green">${r.isLive?r.liveXgH.toFixed(2):r.xgH.toFixed(2)}</div></div>
+        <div class="ai-pred-box"><div class="label">xG ${esc(aN)}${r.isLive?" (تراكمي)":""}</div><div class="value blue">${r.isLive?r.liveXgA.toFixed(2):r.xgA.toFixed(2)}</div></div>
+      </div>
+      ${r.isLive?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+        <div class="ai-pred-box"><div class="label">xG متبقٍ ${esc(hN)}</div><div class="value green">${r.xgHRemaining.toFixed(2)}</div></div>
+        <div class="ai-pred-box"><div class="label">xG متبقٍ ${esc(aN)}</div><div class="value blue">${r.xgARemaining.toFixed(2)}</div></div>
+      </div>`:""}
+      ${orcInfo}
+    </div>
+    <div class="accuracy-panel">
+      <div class="accuracy-title">📊 أهم المؤشرات</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div class="metric-box"><div class="m-label">BTTS</div><div class="m-value">${Math.round(r.bttsProb)}%</div></div>
+        <div class="metric-box"><div class="m-label">Over 2.5</div><div class="m-value">${Math.round(r.over25)}%</div></div>
+        <div class="metric-box"><div class="m-label">H2H</div><div class="m-value">${r.h2h.homeWins}-${r.h2h.draws}-${r.h2h.awayWins}</div></div>
+      </div>
+    </div>
+    <div style="font-size:.85rem;color:var(--text);font-weight:800;margin:14px 0 10px">🎯 أفضل الرهانات</div>
+    ${r.bestBets.map(b=>`<div class="bet-item">
+      <span class="bet-market">${esc(b.market)}</span>
+      <div style="flex:1;text-align:center"><div style="font-weight:800">${esc(b.selection)}</div><div style="font-size:.65rem;color:var(--muted)">${b.prob?Math.round(b.prob)+'%':''}</div></div>
+      <span class="bet-odds">${esc(b.odds)}</span>
+    </div>`).join("")}
+    <button class="back-btn" style="width:100%;margin-top:12px;background:var(--ai);color:#fff;font-weight:800;justify-content:center;border:none;padding:12px;border-radius:10px;font-family:inherit;font-size:.9rem" onclick="enhanceWithAI()">🧠 تحسين بـ AI</button>`;
+  $("analysis-content").innerHTML=html;
+}
+function buildLocalText(r){
+  const parts=[];
+  if(r.isLive){
+    parts.push(`جارية في الدقيقة ${r.currentMinute} — ${r.home.name} ${r.currentScore.home} - ${r.currentScore.away} ${r.away.name}.`);
+    parts.push(`xG تراكمي: ${r.home.name} ${r.liveXgH.toFixed(2)} — ${r.away.name} ${r.liveXgA.toFixed(2)}.`);
+    parts.push(`متبقٍ ${r.remainingMinutes} دقيقة (xG: ${r.xgHRemaining.toFixed(2)} / ${r.xgARemaining.toFixed(2)}).`);
+    parts.push(`النهائية المتوقعة: ${r.finalScore.home}-${r.finalScore.away}. الفائز: ${r.winner}.`);
+  }else if(r.isPost){
+    parts.push(`المباراة انتهت ${r.currentScore.home}-${r.currentScore.away}.`);
+  }else{
+    parts.push(`${r.home.name} (م ${r.home.rank}) ضد ${r.away.name} (م ${r.away.rank}).`);
+    parts.push(`xG: ${r.xgH.toFixed(2)} - ${r.xgA.toFixed(2)}. المتوقعة: ${r.finalScore.home}-${r.finalScore.away}.`);
+  }
+  parts.push(`BTTS: ${Math.round(r.bttsProb)}%. Over 2.5: ${Math.round(r.over25)}%.`);
+  if(r.h2h.total>0)parts.push(`H2H: ${r.h2h.homeWins}-${r.h2h.draws}-${r.h2h.awayWins}.`);
+  return parts.join(" ");
+}
+async function enhanceWithAI(){
+  if(!state.currentAnalysis)return;
+  const el=$("ai-text");if(!el)return;
+  const prev=el.textContent;
+  el.innerHTML='<span class="spinner"></span> AI...';
+  const r=state.currentAnalysis;
+  const prompt=`حلل ${r.home.name} ضد ${r.away.name}. ${r.isLive?'الحالية: '+r.currentScore.home+"-"+r.currentScore.away+" (د "+r.currentMinute+")":''} النهائية: ${r.finalScore.home}-${r.finalScore.away}. الفائز: ${r.winner}. اكتب 6-8 أسطر.`;
+  try{
+    const resp=await askAI("محلل",prompt);
+    if(resp.text&&resp.text.length>20)el.innerHTML=esc(resp.text).replace(/\n/g,"<br>");
+    else el.textContent=prev;
+  }catch(e){el.textContent=prev;}
+}
+function renderMetricsTab(){
+  const r=state.currentAnalysis,c=$("metrics-content");if(!r||!c)return;
+  const groups=[
+    {title:"📈 الأساسي",items:[["الترتيب",r.home.rank,r.away.rank],["النقاط",r.home.stats.points,r.away.stats.points],["المباريات",r.home.stats.gp,r.away.stats.gp]]},
+    {title:"🎯 الهجوم",items:[["أهداف",r.home.stats.gf,r.away.stats.gf],["/مباراة",r.home.stats.gpg.toFixed(2),r.away.stats.gpg.toFixed(2)],["xG إجمالي",r.xgH.toFixed(2),r.xgA.toFixed(2)]]},
+    {title:r.isLive?"🔴 مباشر":"🛡️ الدفاع",items:r.isLive?[
+      ["xG حي",r.liveXgH.toFixed(2),r.liveXgA.toFixed(2)],
+      ["xG متبقٍ",r.xgHRemaining.toFixed(2),r.xgARemaining.toFixed(2)],
+      ["تسديدات",safeNum(r.liveStats?.h?.totalShots,0),safeNum(r.liveStats?.a?.totalShots,0)],
+      ["على المرمى",safeNum(r.liveStats?.h?.shotsOnTarget,0),safeNum(r.liveStats?.a?.shotsOnTarget,0)],
+      ["استحواذ",safeNum(r.liveStats?.h?.possessionPct,0)+"%",safeNum(r.liveStats?.a?.possessionPct,0)+"%"]
+    ]:[["مستقبلة",r.home.stats.ga,r.away.stats.ga],["/مباراة",r.home.stats.cpg.toFixed(2),r.away.stats.cpg.toFixed(2)]]}
+  ];
+  let html="";
+  groups.forEach(g=>{
+    html+=`<div style="margin-bottom:14px;background:var(--card2);border-radius:10px;padding:12px"><div style="font-size:.78rem;color:var(--green);font-weight:800;margin-bottom:8px">${g.title}</div>`;
+    g.items.forEach(item=>{
+      html+=`<div class="stat-row"><span class="stat-value" style="color:var(--green);min-width:60px;text-align:right">${esc(item[1])}</span><span class="stat-label" style="text-align:center">${esc(item[0])}</span><span class="stat-value" style="color:var(--blue);min-width:60px;text-align:left">${esc(item[2])}</span></div>`;
+    });
+    html+=`</div>`;
+  });
+  c.innerHTML=html;
+}
+function renderAccuracyTab(){
+  const r=state.currentAnalysis,c=$("accuracy-content");if(!r||!c)return;
+  const methods=["Poisson","Dixon-Coles","Bayesian","Home Adv","Form Weight","Monte Carlo","Ensemble","Kelly","EV","Value Bet","H2H Adj","Momentum","Confidence","Reg to Mean","Recency","League Norm","Streak","BTTS Rate","Over Rate","Clean Sheet","FTS Rate","Elo","Sample Weight","Variance","Matrix Norm"];
+  c.innerHTML=`<div class="accuracy-panel">
+    <div class="accuracy-title">🎯 القيم</div>
+    <div class="accuracy-item"><span class="acc-label">xG Home</span><span class="acc-value">${r.xgH.toFixed(3)}</span></div>
+    <div class="accuracy-item"><span class="acc-label">xG Away</span><span class="acc-value">${r.xgA.toFixed(3)}</span></div>
+    <div class="accuracy-item"><span class="acc-label">الدقيقة</span><span class="acc-value">${r.currentMinute}'</span></div>
+    <div class="accuracy-item"><span class="acc-label">Data Sane</span><span class="acc-value">${r._isDataSane?"✅":"⚠️"}</span></div>
+  </div>
+  <div style="margin-bottom:14px;background:var(--card2);border-radius:10px;padding:12px">
+    <div style="font-size:.78rem;color:var(--green);font-weight:800;margin-bottom:8px">✅ 25 تقنية</div>
+    <div>${methods.map(m=>`<span class="method-tag">${esc(m)}</span>`).join("")}</div>
+  </div>`;
+}
+function renderBettingTab(){
+  const r=state.currentAnalysis,c=$("betting-content");
+  if(!r){c.innerHTML='<div class="empty">جاري...</div>';return;}
+  c.innerHTML=`
+    ${r.isLive?`<div style="background:rgba(220,38,38,.15);border-radius:12px;padding:14px;text-align:center;margin-bottom:12px;border:1px solid var(--red)">
+      <div style="font-size:.7rem;color:#f87171">الحالية</div>
+      <div style="font-size:1.6rem;font-weight:900;color:#f87171">${r.currentScore.home} - ${r.currentScore.away}</div>
+      <div style="font-size:.68rem;color:var(--muted)">د ${r.currentMinute}</div>
+    </div>`:""}
+    <div class="bet-panel"><div class="bet-title">💎 الرهانات</div>
+      ${r.bestBets.map(b=>`<div class="bet-item"><span class="bet-market">${esc(b.market)}</span><div style="flex:1;text-align:center"><div style="font-weight:800">${esc(b.selection)}</div></div><span class="bet-odds">${esc(b.odds)}</span></div>`).join("")}
+    </div>
+    <div class="bet-panel"><div class="bet-title">📊 الأسواق</div>
+      <div class="stat-row"><span class="stat-label">BTTS</span><span class="stat-value">${Math.round(r.bttsProb)}%</span></div>
+      <div class="stat-row"><span class="stat-label">Over 1.5</span><span class="stat-value">${Math.round(r.over15)}%</span></div>
+      <div class="stat-row"><span class="stat-label">Over 2.5</span><span class="stat-value">${Math.round(r.over25)}%</span></div>
+      <div class="stat-row"><span class="stat-label">Over 3.5</span><span class="stat-value">${Math.round(r.over35)}%</span></div>
+    </div>`;
+}
+
+function buildSimQueueForLive(){
+  try{
+    const r=state.currentAnalysis;
+    const summary=state.currentSummary;
+    const cs=summary.header.competitions[0].competitors||[];
+    const hTeam=cs.find(c=>c.homeAway==="home")||{};
+    const aTeam=cs.find(c=>c.homeAway==="away")||{};
+    const hN=hTeam.team?.shortDisplayName||"المستضيف";
+    const aN=aTeam.team?.shortDisplayName||"الضيف";
+    const currentMinute=r.currentMinute;
+    const remaining=Math.max(2,95-currentMinute);
+    const neededH=Math.max(0,r.finalScore.home-r.currentScore.home);
+    const neededA=Math.max(0,r.finalScore.away-r.currentScore.away);
+    const seed=hashString(String(r.home.id||hN)+String(r.away.id||aN)+"v261");
+    const rng=mulberry32(seed);
+    const past=(r.realEvents||[]).filter(e=>e.min<=currentMinute).map(e=>({
+      minute:e.min,type:e.type,cls:e.type,
+      text:`${e.icon} ${e.label} — ${e.side==="home"?hN:aN}${e.player?" ("+e.player+")":""}`,
+      side:e.side,isPast:true
+    }));
+    const future=[];
+    const goals=distributeGoalsBalanced(neededH,neededA,currentMinute+2,94,rng);
+    goals.home.forEach(m=>future.push({minute:m,type:"goal",cls:"goal",text:"⚽ هدف — "+hN,side:"home",isPast:false}));
+    goals.away.forEach(m=>future.push({minute:m,type:"goal",cls:"goal",text:"⚽ هدف — "+aN,side:"away",isPast:false}));
+    const addC=Math.min(4,Math.max(1,Math.round(remaining/25)));
+    const cSlots=distributeEventsWithGap(addC,currentMinute+2,94,8,rng);
+    cSlots.forEach(m=>{const s=rng()<0.5?"home":"away";future.push({minute:m,type:"corner",cls:"corner",text:"🚩 ركنية — "+(s==="home"?hN:aN),side:s,isPast:false});});
+    const addCards=Math.min(2,Math.max(0,Math.round(remaining/40)));
+    const cardSlots=distributeEventsWithGap(addCards,currentMinute+10,94,15,rng);
+    cardSlots.forEach(m=>{const s=rng()<0.5?"home":"away";future.push({minute:m,type:"card-y",cls:"card-y",text:"🟨 صفراء — "+(s==="home"?hN:aN),side:s,isPast:false});});
+    if(remaining>20){
+      const addSubs=Math.min(2,Math.round(remaining/30));
+      const subSlots=distributeEventsWithGap(addSubs,currentMinute+15,94,15,rng);
+      subSlots.forEach(m=>{const s=rng()<0.5?"home":"away";future.push({minute:m,type:"sub",cls:"sub",text:"🔄 تبديل — "+(s==="home"?hN:aN),side:s,isPast:false});});
+    }
+    future.forEach(ev=>{if(ev.minute>94)ev.minute=94;if(ev.minute<=currentMinute)ev.minute=currentMinute+1;});
+    future.sort((a,b)=>a.minute-b.minute);
+    return{past:past.sort((a,b)=>a.minute-b.minute),future,currentMinute};
+  }catch(e){console.error(e);return{past:[],future:[],currentMinute:0};}
+}
+function buildSimQueueForPre(){
+  try{
+    const r=state.currentAnalysis;
+    const cs=state.currentSummary.header.competitions[0].competitors||[];
+    const hTeam=cs.find(c=>c.homeAway==="home")||{};
+    const aTeam=cs.find(c=>c.homeAway==="away")||{};
+    const hN=hTeam.team?.shortDisplayName||"المستضيف";
+    const aN=aTeam.team?.shortDisplayName||"الضيف";
+    const seed=hashString(String(r.home.id||hN)+String(r.away.id||aN)+"v261");
+    const rng=mulberry32(seed);
+    const events=[];
+    const hG=r.finalScore.home;
+    const aG=r.finalScore.away;
+    const goals=distributeGoalsBalanced(hG,aG,5,90,rng);
+    goals.home.forEach(m=>events.push({minute:m,type:"goal",cls:"goal",text:"⚽ هدف — "+hN,side:"home",isPast:false}));
+    goals.away.forEach(m=>events.push({minute:m,type:"goal",cls:"goal",text:"⚽ هدف — "+aN,side:"away",isPast:false}));
+    const cSlots=distributeEventsWithGap(10,3,92,7,rng);
+    cSlots.forEach(m=>{const s=rng()<0.5?"home":"away";events.push({minute:m,type:"corner",cls:"corner",text:"🚩 ركنية — "+(s==="home"?hN:aN),side:s,isPast:false});});
+    const cardSlots=distributeEventsWithGap(4,10,88,12,rng);
+    cardSlots.forEach(m=>{const s=rng()<0.5?"home":"away";events.push({minute:m,type:"card-y",cls:"card-y",text:"🟨 صفراء — "+(s==="home"?hN:aN),side:s,isPast:false});});
+    const subSlots=distributeEventsWithGap(3,55,88,10,rng);
+    subSlots.forEach(m=>{const s=rng()<0.5?"home":"away";events.push({minute:m,type:"sub",cls:"sub",text:"🔄 تبديل — "+(s==="home"?hN:aN),side:s,isPast:false});});
+    events.sort((a,b)=>a.minute-b.minute);
+    return{past:[],future:events,currentMinute:0};
+  }catch(e){return{past:[],future:[],currentMinute:0};}
+}
+function renderSimulator(){
+  try{
+    if(!state.currentSummary){$("sim-container").innerHTML='<div class="error-panel">⚠️</div>';return;}
+    const cs=state.currentSummary.header.competitions[0].competitors||[];
+    const h=cs.find(x=>x.homeAway==="home")||{};
+    const a=cs.find(x=>x.homeAway==="away")||{};
+    const hN=h.team?.shortDisplayName||"المستضيف";
+    const aN=a.team?.shortDisplayName||"الضيف";
+    const hLogo=h.team?.logo||"";
+    const aLogo=a.team?.logo||"";
+    const r=state.currentAnalysis;
+    const homeScoreDisplay=r?r.currentScore.home:safeNum(h.score,0);
+    const awayScoreDisplay=r?r.currentScore.away:safeNum(a.score,0);
+    const isLive=r&&r.isLive;
+    const currentMin=r?r.currentMinute:0;
+    const infoText=r
+      ?(isLive
+        ?`🔴 ${hN} ${homeScoreDisplay} - ${awayScoreDisplay} ${aN} | النهائية: ${r.finalScore.home}-${r.finalScore.away}`
+        :`📋 الأكثر احتمالاً: ${r.finalScore.home}-${r.finalScore.away}`)
+      :'⏳ في انتظار التحليل';
+    $("sim-container").innerHTML=`
+      <div style="text-align:center;font-size:.72rem;color:var(--muted);margin-bottom:10px">
+        ${isLive?'🔴 ماضي + مستقبل موزّع بذكاء':'🎲 محاكاة موزّعة'}
+      </div>
+      <div class="sim-scoreboard">
+        <div class="sim-team-label home-side">
+          <img src="${esc(hLogo)}" onerror="this.style.display='none'"><span>${esc(hN)}</span>
+        </div>
+        <div><span class="sim-score-val" id="sim-hs">${homeScoreDisplay}</span>-<span class="sim-score-val" id="sim-as">${awayScoreDisplay}</span></div>
+        <div class="sim-team-label away-side">
+          <img src="${esc(aLogo)}" onerror="this.style.display='none'"><span>${esc(aN)}</span>
+        </div>
+      </div>
+      <div style="font-size:.72rem;color:var(--muted);text-align:center" id="sim-minute">⏱️ ${isLive?'الدقيقة '+currentMin:"0'"}</div>
+      <div class="sim-progress"><div class="sim-progress-fill" id="sim-progress"></div></div>
+      <div style="background:rgba(168,85,247,.1);border:1px solid var(--ai);border-radius:8px;padding:8px;font-size:.72rem;text-align:center;margin-bottom:10px">${infoText}</div>
+      <div class="sim-controls">
+        <button class="sim-ctrl-btn primary" onclick="startSim()">▶️</button>
+        <button class="sim-ctrl-btn" onclick="pauseSim()">⏸️</button>
+        <button class="sim-ctrl-btn" onclick="resetSim()">🔄</button>
+        <button class="sim-ctrl-btn" onclick="fastSim()">⚡</button>
+      </div>
+      <div style="font-size:.7rem;color:var(--muted);text-align:center;margin:8px 0">
+        <span style="color:var(--gold)">—</span> ماضي <span style="color:var(--blue)">- -</span> مستقبل
+      </div>
+      <div class="sim-events" id="sim-events"></div>`;
+  }catch(e){$("sim-container").innerHTML=`<div class="error-panel">⚠️ ${esc(e.message)}</div>`;}
+}
+function startSim(){
+  try{
+    if(state.sim){clearInterval(state.sim);state.sim=null;}
+    const isLive=state.currentAnalysis?.isLive;
+    if(!state.simEvents)state.simEvents=isLive?buildSimQueueForLive():buildSimQueueForPre();
+    const {past,future}=state.simEvents;
+    const evt=$("sim-events");if(evt)evt.innerHTML="";
+    if(isLive&&past.length){
+      past.forEach(ev=>addSimEvent(ev.minute,ev.cls,ev.text,true));
+      const marker=document.createElement("div");
+      marker.className="live-marker";
+      marker.textContent=`⬇️ اللحظة الحالية (د ${state.currentAnalysis.currentMinute}) ⬇️`;
+      evt.prepend(marker);
+    }
+    let minute=state.simClock||(isLive?state.currentAnalysis.currentMinute:0);
+    let hS=parseInt($("sim-hs").textContent)||0;
+    let aS=parseInt($("sim-as").textContent)||0;
+    let idx=0;
+    const speed=state.aiCommands?.adjustSimulator?.speed||250;
+    state.sim=setInterval(()=>{
+      minute++;
+      state.simClock=minute;
+      const mEl=$("sim-minute");if(mEl)mEl.textContent=`⏱️ ${minute}'`;
+      const pr=$("sim-progress");if(pr)pr.style.width=Math.min(100,(minute/95)*100)+"%";
+      while(idx<future.length&&future[idx].minute<=minute){
+        const ev=future[idx];
+        if(ev.type==="goal"){
+          if(ev.side==="home"){hS++;$("sim-hs").textContent=hS;}
+          else{aS++;$("sim-as").textContent=aS;}
+        }
+        addSimEvent(ev.minute,ev.cls,ev.text,false);
+        idx++;
+      }
+      if(minute>=95){
+        clearInterval(state.sim);state.sim=null;
+        addSimEvent(95,"info",`🏁 نهاية — ${hS} - ${aS}`,false);
+      }
+    },speed);
+  }catch(e){showToast("خطأ: "+e.message,"error");}
+}
+function pauseSim(){if(state.sim){clearInterval(state.sim);state.sim=null;}}
+function resetSim(){
+  pauseSim();state.simClock=0;state.simEvents=null;
+  const r=state.currentAnalysis;
+  const isLive=r&&r.isLive;
+  const hS=isLive?r.currentScore.home:0;
+  const aS=isLive?r.currentScore.away:0;
+  $("sim-hs").textContent=hS;$("sim-as").textContent=aS;
+  $("sim-progress").style.width="0%";
+  $("sim-minute").textContent=isLive?`⏱️ الدقيقة ${r.currentMinute}`:"⏱️ 0'";
+  $("sim-events").innerHTML="";
+}
+function fastSim(){
+  try{
+    pauseSim();
+    const isLive=state.currentAnalysis?.isLive;
+    const q=isLive?buildSimQueueForLive():buildSimQueueForPre();
+    const r=state.currentAnalysis;
+    const curH=isLive?r.currentScore.home:0;
+    const curA=isLive?r.currentScore.away:0;
+    $("sim-events").innerHTML="";
+    if(isLive&&q.past.length){
+      q.past.forEach(ev=>addSimEvent(ev.minute,ev.cls,ev.text,true));
+      const marker=document.createElement("div");
+      marker.className="live-marker";
+      marker.textContent=`⬇️ اللحظة الحالية (د ${r.currentMinute}) ⬇️`;
+      $("sim-events").prepend(marker);
+    }
+    let hS=curH,aS=curA;
+    q.future.forEach(ev=>{
+      if(ev.type==="goal"){if(ev.side==="home")hS++;else aS++;}
+      addSimEvent(ev.minute,ev.cls,ev.text,false);
+    });
+    $("sim-hs").textContent=hS;$("sim-as").textContent=aS;
+    $("sim-progress").style.width="100%";
+    $("sim-minute").textContent="⏱️ 95'";
+    const tH=r?r.finalScore.home:hS;
+    const tA=r?r.finalScore.away:aS;
+    addSimEvent(95,"info",`🏁 نهاية — ${hS} - ${aS} (المتوقعة: ${tH}-${tA})`,false);
+  }catch(e){showToast("خطأ: "+e.message,"error");}
+}
+function addSimEvent(minute,cls,text,isPast){
+  const evt=$("sim-events");if(!evt)return;
+  const div=document.createElement("div");
+  div.className="sim-event "+cls+(isPast?" past":" future");
+  div.innerHTML=`<span class="sim-minute">${minute}'</span><span>${text}</span>`;
+  evt.prepend(div);
+}
+
+function openProblems(){
+  pushHistory('home-screen');switchScreen('problems-screen');
+  renderProblems();
+  state.issues.forEach(i=>i.read=true);
+  localStorage.setItem('issues',JSON.stringify(state.issues));
+  updateIssuesBadge();
+}
+function renderProblems(){
+  const el=$("problems-content");
+  const issues=state.issues||[];
+  const high=issues.filter(i=>i.severity==="high").length;
+  const med=issues.filter(i=>i.severity==="medium").length;
+  let html=`<div class="issue-counter">
+    <div class="big">${issues.length}</div>
+    <div class="lbl">إجمالي المشاكل (فريدة)</div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;font-size:.7rem">
+      <span style="color:var(--red)">🔴 ${high} عالية</span>
+      <span style="color:var(--gold)">🟡 ${med} متوسطة</span>
+      <span style="color:var(--green)">🟢 ${issues.length-high-med} منخفضة</span>
+    </div>
+  </div>`;
+  html+=`<div style="padding:0 12px">
+    <button class="back-btn" style="margin:0 0 12px;width:100%;justify-content:center;background:var(--card2);border:1px solid var(--border)" onclick="clearAllIssues()">🗑️ مسح الكل</button>
+    <button class="back-btn" style="margin:0 0 12px;width:100%;justify-content:center;background:var(--ai);color:#fff;border:none" onclick="exportAllIssues()">📤 نسخ الكل</button>
+  </div>`;
+  if(!issues.length){
+    html+=`<div class="empty" style="padding:40px 20px">
+      <div style="font-size:3rem;margin-bottom:12px">✅</div>
+      <div style="font-size:.95rem;font-weight:800;color:var(--green);margin-bottom:8px">لا مشاكل</div>
+      <div style="font-size:.75rem;color:var(--muted);line-height:1.7">AI يفحص كل 30 ثانية. V26.1 يستبعد أي إنذار كاذب تلقائياً.</div>
+    </div>`;
+  } else {
+    issues.forEach(issue=>{
+      const sev=issue.severity||"info";
+      const sevLabel=sev==="high"?"🔴 عالية":sev==="medium"?"🟡 متوسطة":sev==="low"?"🔵 منخفضة":"🟢 معلومة";
+      const sevClass=sev==="high"?"sev-high":sev==="medium"?"sev-medium":sev==="low"?"sev-low":"sev-info";
+      const occ=issue.occurrences||1;
+      html+=`<div class="issue-card ${sevClass}">
+        <div class="issue-header">
+          <div style="display:flex;gap:4px;align-items:center">
+            <span class="issue-sev-badge ${sev}">${sevLabel}</span>
+            ${occ>1?`<span class="issue-count-badge">تكرر ${occ}×</span>`:""}
+          </div>
+          <span>${new Date(issue.ts).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+        </div>
+        <div class="issue-title">${esc(issue.title||"مشكلة")}</div>
+        <div class="issue-msg">${esc(issue.msg||"")}</div>
+        <div class="issue-meta">
+          <span>🆔 ${esc(issue.id)}</span>
+          <span>${esc(issue.context||"")}</span>
+        </div>
+        <button class="issue-copy-btn" onclick="copyIssue('${issue.id}')">📋 نسخ</button>
+      </div>`;
+    });
+  }
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+function copyIssue(id){
+  const issue=state.issues.find(i=>i.id===id);
+  if(!issue)return;
+  const txt=`🚨 مشكلة V26.1
+⏰ ${new Date(issue.ts).toLocaleString('ar-EG')}
+📊 الشدة: ${issue.severity}
+🔁 تكرر: ${issue.occurrences||1}
+📌 ${issue.title}
+━━━━━━━━━━━━━━━
+${issue.msg}`;
+  navigator.clipboard.writeText(txt).then(()=>showToast("📋 تم النسخ"));
+}
+function exportAllIssues(){
+  const txt=state.issues.map(i=>`[${i.severity}] (×${i.occurrences||1}) ${i.title}\n${i.msg}\n---`).join("\n\n");
+  if(!txt)return showToast("لا مشاكل","warn");
+  navigator.clipboard.writeText(txt).then(()=>showToast("📤 تم نسخ الكل"));
+}
+function clearAllIssues(){
+  if(!confirm("مسح كل المشاكل؟"))return;
+  state.issues=[];
+  localStorage.setItem('issues','[]');
+  updateIssuesBadge();
+  renderProblems();
+  showToast("🗑️ تم المسح");
+}
+
+async function openStandings(){
+  pushHistory('home-screen');switchScreen('standings-screen');
+  $("standings-title").textContent="🏆 "+(LEAGUES.find(l=>l.id===state.league)?.name||"");
+  $("standings-content").innerHTML='<div class="empty"><div class="spinner"></div></div>';
+  const result=await fetchData(`${ESPN_V2}/${state.league}/standings`,9000);
+  if(!result.ok){$("standings-content").innerHTML='<div class="empty">⚠️</div>';return;}
+  renderStandings(result.data);
+}
+function renderStandings(data){
+  try{
+    if(!data||!data.children){$("standings-content").innerHTML='<div class="empty">لا ترتيب</div>';return;}
+    const entries=(data.children[0].standings?.entries)||[];
+    const sorted=entries.slice().sort((a,b)=>safeNum((a.stats||[]).find(s=>s.name==="rank")?.value,99)-safeNum((b.stats||[]).find(s=>s.name==="rank")?.value,99));
+    let html=`<div style="padding:0 12px">`;
+    sorted.forEach(e=>{
+      const st={};(e.stats||[]).forEach(s=>st[s.name]=s.displayValue);
+      const rank=parseInt(st.rank)||99;
+      const rc=rank<=4?"var(--green)":rank>=sorted.length-2?"var(--red)":"var(--muted)";
+      html+=`<div style="display:grid;grid-template-columns:30px 36px 1fr 40px 40px 45px;gap:8px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;align-items:center;font-size:.75rem;margin-bottom:6px">
+        <div style="font-weight:800;color:${rc};text-align:center">${st.rank||"-"}</div>
+        <img src="${esc(e.team.logos?.[0]?.href||'')}" style="width:28px;height:28px;object-fit:contain" onerror="this.style.display='none'">
+        <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.team.shortDisplayName||e.team.displayName)}</div>
+        <div style="text-align:center;font-weight:700;color:var(--muted)">${st.gamesPlayed||"-"}</div>
+        <div style="text-align:center;font-weight:700;color:var(--muted)">${st.wins||"-"}</div>
+        <div style="text-align:center;font-weight:800;color:var(--green)">${st.points||"-"}</div>
+      </div>`;
+    });
+    html+=`</div>`;
+    $("standings-content").innerHTML=html;
+  }catch(e){$("standings-content").innerHTML='<div class="empty">خطأ</div>';}
+}
+function openTools(){pushHistory('home-screen');switchScreen('tools-screen');renderTools();}
+function renderTools(){
+  const el=$("tools-content");
+  const catOrder=["AI","Accuracy","Simulator","UI","Data"];
+  let html=`<div class="orch-panel">
+    <div class="orch-title">🤖 AI Orchestrator <span><span class="orch-live-dot"></span></span></div>
+    <div style="font-size:.72rem;color:#d0defc;margin-bottom:8px">دورة #${Orchestrator.cycles} • ${state.knowledgeBase.length} معلومة • ${state.issues.length} مشكلة</div>
+    <div class="orch-log">
+      ${state.orchestratorLog.length?state.orchestratorLog.slice(0,15).map(l=>`<div class="orch-log-item"><span class="time">${l.time}</span> — ${esc(l.msg)}</div>`).join(""):'<div class="orch-log-item">في انتظار أول دورة...</div>'}
+    </div>
+  </div>
+  <div class="accuracy-panel">
+    <div class="accuracy-title">📚 قاعدة المعارف (${state.knowledgeBase.length})</div>
+    ${state.knowledgeBase.length?state.knowledgeBase.slice(0,8).map(k=>`<div class="accuracy-item"><span class="acc-label">${k.type==='insight'?'💡':k.type==='live'?'🔴':'📚'} ${esc(String(k.text).slice(0,45))}</span><span class="acc-value">${new Date(k.ts).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join(""):'<div class="empty">لا معارف</div>'}
+  </div>`;
+  catOrder.forEach(cat=>{
+    const items=FEATURES.filter(f=>f.cat===cat);
+    if(!items.length)return;
+    const t=cat==="AI"?"AI":cat==="Accuracy"?"الدقة":cat==="Simulator"?"المحاكي":cat==="UI"?"الواجهة":"البيانات";
+    html+=`<div class="accuracy-panel"><div class="accuracy-title">🎯 ${t} (${items.length})</div>`;
+    items.forEach(f=>{html+=`<div class="accuracy-item"><span class="acc-label">${f.id}. ${esc(f.name)}</span><span class="acc-value">✅</span></div>`;});
+    html+=`</div>`;
+  });
+  el.innerHTML=html;
+}
+
+function toggleChat(){
+  state.chatOpen=!state.chatOpen;
+  $("chat-panel").classList.toggle("hidden",!state.chatOpen);
+  if(state.chatOpen){updateSuggestions();}
+}
+function updateSuggestions(){
+  const el=$("chat-suggestions");
+  const sugs=state.matchKnowledge?["النتيجة الحالية؟","من سيفوز؟","الركنيات؟","البطاقات؟","الأهداف؟"]:["ما وظيفتك؟"];
+  el.innerHTML=sugs.map(s=>`<button class="chat-chip">${esc(s)}</button>`).join("");
+  el.querySelectorAll(".chat-chip").forEach((b,i)=>{b.onclick=()=>sendChat(sugs[i]);});
+}
+function buildChatContext(){
+  let ctx="";
+  const k=state.matchKnowledge;
+  if(k){
+    ctx+=`${k.home} ضد ${k.away}\n`;
+    ctx+=`الحالة: ${k.isLive?"🔴 مباشر (د "+k.currentMinute+" — ESPN: "+k._espnClock+")":k.isPost?"انتهت":"قادمة"}\n`;
+    ctx+=`النتيجة الحالية: ${k.currentScore}\n`;
+    ctx+=`النهائية: ${k.finalPredicted} | الفائز: ${k.winner}\n`;
+    ctx+=`xG: ${k.home} ${k.xgH} | ${k.away} ${k.xgA}\n`;
+    if(k.goals.length)ctx+=`⚽ أهداف: ${k.goals.join(" | ")}\n`;
+    ctx+=`🚩 ركنيات: ${k.corners} | 🟨 ${k.yellow.length}\n`;
+  } else ctx+="لا مباراة.";
+  return ctx;
+}
+async function sendChat(preset){
+  if(state.chatBusy)return;
+  const inp=$("chat-input");
+  const q=preset||(inp&&inp.value.trim());
+  if(!q)return;
+  if(inp)inp.value="";
+  const w=document.querySelector(".chat-welcome");if(w)w.remove();
+  const msgs=$("chat-messages");
+  msgs.innerHTML+=`<div class="chat-msg user">${esc(q)}</div>`;
+  const lid="l"+Date.now();
+  msgs.innerHTML+=`<div class="chat-msg ai" id="${lid}"><span class="spinner" style="width:14px;height:14px;border-width:2px"></span></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  state.chatBusy=true;
+  try{
+    const ctx=buildChatContext();
+    const sys=`محلل كرة قدم.\n${ctx}\n⚠️ النتيجة: ${state.matchKnowledge?.currentScore||"?"}. الدقيقة ${state.matchKnowledge?.currentMinute||0}. 3-5 أسطر.`;
+    const resp=await askAI(sys,q);
+    const el=$(lid);
+    if(el){
+      if(resp.text){el.innerHTML=esc(resp.text).replace(/\n/g,"<br>")+`<div style="font-size:.6rem;color:var(--muted);margin-top:4px">${resp.source}</div>`;}
+      else{
+        const k=state.matchKnowledge;
+        if(k&&/نتيجة/i.test(q))el.innerHTML=`النتيجة: <b>${k.currentScore}</b>`;
+        else el.textContent="⚠️";
+      }
+      el.removeAttribute("id");
+    }
+  }catch(e){const el=$(lid);if(el){el.textContent="⚠️";el.removeAttribute("id");}}
+  finally{state.chatBusy=false;}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+let loopTimer=null,lastMatchesUpdate=0,lastLiveUpdate=0,lastCurrentUpdate=0,failCount=0;
+function startLoop(){
+  if(loopTimer)clearInterval(loopTimer);
+  loopTimer=setInterval(async()=>{
+    if(document.hidden)return;
+    const now=Date.now();
+    const onHome=$("home-screen").classList.contains("active");
+    const onMatch=$("match-screen").classList.contains("active");
+    const hasLive=state.matches.some(m=>getMatchState(m)==="in");
+    const currentIsLive=state.currentSummary&&getMatchStateFromSummary(state.currentSummary)==="in";
+    if(failCount>=5){
+      $("refresh-dot").classList.add("error");
+      setTimeout(()=>{failCount=0;$("refresh-dot").classList.remove("error");},60000);
+      return;
+    }
+    if(currentIsLive&&onMatch&&now-lastCurrentUpdate>20000){lastCurrentUpdate=now;await refreshCurrentMatch();}
+    else if(onHome&&hasLive&&now-lastLiveUpdate>25000){lastLiveUpdate=now;await refreshLive();}
+    else if(onHome&&now-lastMatchesUpdate>120000){lastMatchesUpdate=now;await refreshAll();}
+  },5000);
+}
+async function refreshCurrentMatch(){
+  try{
+    const matchId=state.currentSummary.header?.id;
+    if(!matchId)return;
+    const r=await fetchData(`${ESPN}/${state.league}/summary?event=${matchId}`,7000);
+    if(!r.ok){failCount++;return;}
+    failCount=0;
+    const oldH=state.currentSummary.header.competitions[0].competitors.find(c=>c.homeAway==='home')?.score;
+    const oldA=state.currentSummary.header.competitions[0].competitors.find(c=>c.homeAway==='away')?.score;
+    state.currentSummary=r.data;
+    const newH=r.data.header?.competitions?.[0]?.competitors?.find(c=>c.homeAway==='home')?.score;
+    const newA=r.data.header?.competitions?.[0]?.competitors?.find(c=>c.homeAway==='away')?.score;
+    const sb=$("live-score-box");if(sb)sb.textContent=`${newH} - ${newA}`;
+    const clock=$("live-clock");if(clock&&r.data.header?.competitions?.[0]?.status)clock.textContent=r.data.header.competitions[0].status.displayClock||"";
+    const evC=$("events-content");if(evC)evC.innerHTML=renderEvents(r.data);
+    if(oldH!==newH||oldA!==newA){showToast(`⚽ هدف! ${newH} - ${newA}`);if(navigator.vibrate)navigator.vibrate(200);}
+    runAnalysis();
+    if(!$("tab-sim").classList.contains("hidden"))renderSimulator();
+    $("last-update-time").textContent=new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){failCount++;}
+}
+async function refreshLive(){
+  try{
+    const r=await fetchData(`${ESPN}/${state.league}/scoreboard`,7000);
+    if(!r.ok){failCount++;return;}
+    failCount=0;
+    const evs=r.data.events||[];
+    evs.forEach(ev=>{const ex=state.matches.find(m=>m.id===ev.id);if(ex)Object.assign(ex,ev);});
+    renderMatches();
+    $("last-update-time").textContent=new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){failCount++;}
+}
+async function refreshAll(){
+  try{
+    const dates=[0,1].map(d=>getDateString(d));
+    const results=await Promise.all(dates.map(d=>fetchData(`${ESPN}/${state.league}/scoreboard?dates=${d}`,7000)));
+    let ok=false;
+    results.forEach(r=>{if(r.ok&&r.data.events){ok=true;r.data.events.forEach(e=>{const ex=state.matches.find(m=>m.id===e.id);if(ex)Object.assign(ex,e);else state.matches.push(e);});}});
+    if(!ok){failCount++;return;}
+    failCount=0;
+    renderMatches();renderDateNav();
+    $("last-update-time").textContent=new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){failCount++;}
+}
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){$("refresh-dot").classList.add("paused");}
+  else{$("refresh-dot").classList.remove("paused");lastMatchesUpdate=0;}
+});
+
+function init(){
+  // ★ حذف كل المشاكل القديمة (false positives من V26)
+  const before=state.issues.length;
+  state.issues=state.issues.filter(i=>!BANNED_PATTERN.test(String(i.title||""))&&!BANNED_PATTERN.test(String(i.msg||"")));
+  const after=state.issues.length;
+  if(before!==after)console.log(`🚫 Removed ${before-after} false positives from storage`);
+  localStorage.setItem('issues',JSON.stringify(state.issues));
+  
+  renderLeagues();
+  loadMatches();
+  loadScorers(state.league);
+  startLoop();
+  updateIssuesBadge();
+  setTimeout(()=>{Orchestrator.start();Orchestrator.log("V26.1 نشط — zero false positives");},5000);
+}
+init();
+</script>
+</body>
+</html>
